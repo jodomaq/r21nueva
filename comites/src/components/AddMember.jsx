@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Grid, Paper, Typography, Stack } from '@mui/material';
+import { Box, TextField, Button, Grid, Paper, Typography, Stack, MenuItem } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../api';
 
@@ -48,7 +48,16 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
           <Grid item xs={12} sm={6}><TextField fullWidth label="INE" value={form.ine_key} onChange={e => setField('ine_key', e.target.value)} /></Grid>
           <Grid item xs={12} sm={4}><TextField fullWidth label="Teléfono" value={form.phone} onChange={e => setField('phone', e.target.value)} /></Grid>
           <Grid item xs={12} sm={4}><TextField fullWidth label="Email" type="email" value={form.email} onChange={e => setField('email', e.target.value)} /></Grid>
-          <Grid item xs={12} sm={2}><TextField fullWidth label="Sección" value={form.section_number} onChange={e => setField('section_number', e.target.value)} /></Grid>
+          <Grid item xs={12} sm={2}>
+            <TextField select fullWidth label="Sección" value={form.section_number} onChange={e => setField('section_number', e.target.value)}>
+              <MenuItem value="">
+                <em>Selecciona sección</em>
+              </MenuItem>
+              {Array.from({ length: 2734 }, (_, i) => i + 1).map((n) => (
+                <MenuItem key={n} value={String(n)}>{n}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
           <Grid item xs={12} sm={2}><TextField fullWidth label="Invitado por" value={form.invited_by} onChange={e => setField('invited_by', e.target.value)} /></Grid>
           <Grid item xs={12}>
             <Stack direction="row" spacing={2}>

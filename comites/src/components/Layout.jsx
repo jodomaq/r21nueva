@@ -21,19 +21,26 @@ export default function Layout({ children, onNavigate }) {
             <MenuIcon />
           </IconButton>
           <Box component="img" src={logo} alt="Logo" sx={{ height: 40, mr: 2 }} />
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>Michoacán</Typography>
-          <h5>Usuario: {user.name}</h5>
-          <Button style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }} color="inherit" onClick={logout}>Salir</Button>
+          <Typography variant="h6" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>Michoacán</Typography>
+          <Typography variant="h6" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>Usuario: {user.name}</Typography>
+          
+          <Button sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }} style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }} color="inherit" onClick={logout}>Salir</Button>
         </Toolbar>
       </AppBar>
       <Drawer open={open} onClose={() => setOpen(false)}>
         <Box sx={{ width: 250 }} role="presentation">
           <List>
+            <ListItem button style={{ cursor: 'pointer' }} key="user">
+                <ListItemText primary={user.name} />
+            </ListItem>
             {menuItems.map(item => (
               <ListItem button style={{ cursor: 'pointer' }} key={item.key} onClick={() => { onNavigate(item.key); setOpen(false); }}>
                 <ListItemText primary={item.label} />
               </ListItem>
             ))}
+              <ListItem button style={{ cursor: 'pointer' }} key="logout" onClick={logout}>
+                <ListItemText primary="Salir" />
+              </ListItem>
           </List>
         </Box>
       </Drawer>
