@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Plataforma R21</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8B1E3F; /* Guinda/Burgundy */
+            --secondary-color: #FFFFFF; /* Blanco/White */
+            --accent-color: #333333; /* Negro/Black */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--secondary-color);
+            color: var(--accent-color);
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            width: 150px;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .welcome-text {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .social-media {
+            background-color: var(--accent-color);
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .social-media a {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin: 0 1rem;
+            transition: color 0.3s;
+        }
+        
+        .social-media a:hover {
+            color: var(--primary-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .card {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .card p {
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #6a1730;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logoR21blanco.png" alt="Logo R21" class="logo">
+        <h1>Bienvenido a la Plataforma R21</h1>
+        <p class="welcome-text">Trabajamos juntos por un mejor futuro para México. Nuestra plataforma está diseñada para facilitar la participación ciudadana y fortalecer el movimiento de regeneración nacional.</p>
+    </header>
+    
+    <div class="social-media">
+        <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+        <a href="#" title="Twitter/X"><i class="fab fa-x-twitter"></i></a>
+        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+        <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    </div>
+    
+    <div class="container">
+        <h2>Nuestras Aplicaciones</h2>
+        <p>Accede a las diferentes herramientas que tenemos para ti. Juntos transformamos México.</p>
+        
+        <div class="cards">
+            <div class="card">
+                <img src="asistencia.png" alt="Registro de Asistencia">
+                <div class="card-content">
+                    <h3>Registrar Asistencia</h3>
+                    <p>Sistema de registro y control de asistencia para eventos, reuniones y asambleas del movimiento.</p>
+                    <a href="https://plataformar21.mx/asistencia/" class="btn">Acceder</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <img src="comite.png" alt="Alta de Comités">
+                <div class="card-content">
+                    <h3>Alta de Comités</h3>
+                    <p>Registro y gestión de comités de base por todo el territorio nacional. ¡Organízate y participa!</p>
+                    <a href="https://plataformar21.mx/comites/" class="btn">Acceder</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <img src="encuesta.png" alt="Encuestas">
+                <div class="card-content">
+                    <h3>Encuestas a la Población</h3>
+                    <p>Participa en nuestras encuestas ciudadanas y ayúdanos a conocer las necesidades de tu comunidad.</p>
+                    <a href="#" class="btn">Acceder</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <img src="estadistica.png" alt="Estadísticas">
+                <div class="card-content">
+                    <h3>Datos Estadísticos</h3>
+                    <p>Consulta información estadística sobre el avance del movimiento y resultados de nuestras acciones.</p>
+                    <a href="#" class="btn">Acceder</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Plataforma R21. Todos los derechos reservados.</p>
+        <p>Comprometidos con el segundo piso de la Cuarta Transformación de México</p>
+    </footer>
+    
+    <script>
+        // Pequeño efecto de animación para las tarjetas
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                }, 200 * index);
+            });
+        });
+    </script>
+</body>
+</html>
+

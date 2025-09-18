@@ -1,0 +1,53 @@
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, EmailStr
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import jwt
+from datetime import datetime, timedelta
+from sqlmodel import Session, select
+from .config import settings
+from .database import get_session
+from . import models, schemas
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+class GoogleAuthIn(BaseModel):
+    id_token: str
+
+
+def create_jwt(user: models.User) -> str:
+    payload = {
+        "sub": str(user.id),
+        "email": user.email,
+        "exp": datetime.utcnow() + timedelta(hours=12),
+        "iat": datetime.utcnow(),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+@router.post("/google", response_model=schemas.TokenResponse)
+def google_login(data: GoogleAuthIn, session: Session = Depends(get_session)):
+    try:
+        print("Settings google client id:", settings.google_client_id)
+        idinfo = id_token.verify_oauth2_token(data.id_token, google_requests.Request(), settings.google_client_id)
+    except Exception as e:  # broad, but we convert to 401
+        print(f"Error verificando token de Google: {e}")
+        raise HTTPException(status_code=401, detail=f"Token de Google inválido: {e}")
+
+    email = idinfo.get("email")
+    if not email or not email.endswith("@gmail.com"):
+        raise HTTPException(status_code=400, detail="Debe iniciar sesión con una cuenta de Gmail")
+
+    name = idinfo.get("name") or email.split("@")[0]
+    picture = idinfo.get("picture")
+
+    user = session.exec(select(models.User).where(models.User.email == email)).first()
+    if not user:
+        user = models.User(email=email, name=name, picture_url=picture)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+
+    token = create_jwt(user)
+    return schemas.TokenResponse(access_token=token, user=user)  # type: ignore[arg-type]
