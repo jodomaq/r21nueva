@@ -4,11 +4,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../api';
+import { useAuth } from '../AuthContext';
 
 export default function MemberList({ committeeId, onBack, onAddMember }) {
   const [committee, setCommittee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   const load = async () => {
     try {
@@ -55,7 +57,7 @@ export default function MemberList({ committeeId, onBack, onAddMember }) {
       {committee && (
         <>
           <Box sx={{ mb:2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight:600 }}>{committee.name}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight:600 }}>Nombre del comité: {committee.name} - Encargado: {user?.name || '—'}</Typography>
             <Typography variant="body2">Sección: {committee.section_number} · Tipo: {committee.type}</Typography>
             <Typography variant="body2">Integrantes: {committee.members?.length || 0} / 10</Typography>
           </Box>
