@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Box, TextField, Button, Grid, Paper, Typography, Stack, MenuItem } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../api';
@@ -15,7 +15,7 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
   const [saving, setSaving] = useState(false);
 
   const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
-
+  const sections = useMemo(() => Array.from({ length: 2734 }, (_, i) => String(i + 1)), []);
   const submit = async (e) => {
     e.preventDefault();
     // simple required validation
@@ -49,12 +49,17 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
           <Grid item xs={12} sm={4}><TextField fullWidth label="Teléfono" value={form.phone} onChange={e => setField('phone', e.target.value)} /></Grid>
           <Grid item xs={12} sm={4}><TextField fullWidth label="Email" type="email" value={form.email} onChange={e => setField('email', e.target.value)} /></Grid>
           <Grid item xs={12} sm={2}>
-            <TextField select fullWidth label="Sección" value={form.section_number} onChange={e => setField('section_number', e.target.value)}>
-              <MenuItem value="">
-                <em>Selecciona sección</em>
-              </MenuItem>
-              {Array.from({ length: 2734 }, (_, i) => i + 1).map((n) => (
-                <MenuItem key={n} value={String(n)}>{n}</MenuItem>
+            <TextField
+              select
+              fullWidth
+              label="Sección"
+              value={form.section_number}
+              onChange={e => setField('section_number', e.target.value)}
+              SelectProps={{ native: true }}
+            >
+              <option value="">Selecciona sección</option>
+              {sections.map((n) => (
+                <option key={n} value={n}>{n}</option>
               ))}
             </TextField>
           </Grid>
