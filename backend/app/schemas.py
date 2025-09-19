@@ -84,3 +84,11 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class OcrIneOut(BaseModel):
+    full_name: str | None = None
+    ine_key: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    section_number: str | None = None

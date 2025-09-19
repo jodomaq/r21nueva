@@ -8,6 +8,7 @@ from .auth import router as auth_router
 from .routers.committees import router as committees_router
 from .routers.documents import router as documents_router
 from .routers.committee_types import router as committee_types_router
+from .routers.ocr import router as ocr_router
 
 
 def create_app() -> FastAPI:
@@ -25,6 +26,7 @@ def create_app() -> FastAPI:
     app.include_router(committees_router)
     app.include_router(documents_router)
     app.include_router(committee_types_router)
+    app.include_router(ocr_router)
 
     # Static files for uploaded images
     os.makedirs(settings.upload_dir, exist_ok=True)

@@ -34,6 +34,10 @@ class Settings(BaseModel):
     db_host: str = os.getenv("DB_HOST", "localhost")
     db_port: int = int(os.getenv("DB_PORT", "3306"))
     db_name: str = os.getenv("DB_NAME", "r21db25")
+    # OpenAI Vision
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_vision_model: str = os.getenv("OPENAI_VISION_MODEL", "gpt-4o-mini")
+    openai_base_url: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 
 settings = Settings()
 
