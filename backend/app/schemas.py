@@ -1,9 +1,20 @@
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
+class CommitteeTypeOut(BaseModel):
+    id: int
+    name: str
+    is_active: bool
+    created_at: datetime
 
-CommitteeType = constr(pattern=r"^(Maestros|Transportistas|Seccionales|Municipales|Deportistas)$")
+    class Config:
+        from_attributes = True
+
+
+class CommitteeTypeCreate(BaseModel):
+    name: str
+    is_active: bool = True
 
 
 class UserOut(BaseModel):
@@ -40,7 +51,7 @@ class CommitteeMemberOut(CommitteeMemberBase):
 class CommitteeBase(BaseModel):
     name: str
     section_number: str
-    type: CommitteeType
+    type: str
 
 
 class CommitteeCreate(CommitteeBase):

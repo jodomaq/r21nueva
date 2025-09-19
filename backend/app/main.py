@@ -7,6 +7,7 @@ from .database import init_db
 from .auth import router as auth_router
 from .routers.committees import router as committees_router
 from .routers.documents import router as documents_router
+from .routers.committee_types import router as committee_types_router
 
 
 def create_app() -> FastAPI:
@@ -23,6 +24,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(committees_router)
     app.include_router(documents_router)
+    app.include_router(committee_types_router)
 
     # Static files for uploaded images
     os.makedirs(settings.upload_dir, exist_ok=True)
@@ -32,6 +34,27 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def on_startup():  # pragma: no cover - side effects only
         init_db()
+        # Seed default committee types if table is empty
+        try:
+            from .database import engine
+            from sqlmodel import Session, select
+            from . import models
+            with Session(engine) as session:
+                exists = session.exec(select(models.CommitteeType).limit(1)).first()
+                if not exists:
+                    defaults = [
+                        "Maestros",
+                        "Transportistas",
+                        "Seccionales",
+                        "Municipales",
+                        "Deportistas",
+                    ]
+                    for name in defaults:
+                        session.add(models.CommitteeType(name=name, is_active=True))
+                    session.commit()
+        except Exception:
+            # Do not block app startup if seeding fails
+            pass
 
     @app.get("/health")
     def health():

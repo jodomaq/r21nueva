@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -34,7 +34,7 @@ const memberSchema = yup
 const schema = yup.object({
   name: yup.string().required('Requerido'),
   section_number: yup.string().required('Requerido'),
-  type: yup.string().oneOf(['Maestros','Transportistas','Seccionales','Municipales','Deportistas']).required('Requerido'),
+  type: yup.string().required('Requerido'),
   members: yup
     .array()
     .of(memberSchema)
@@ -42,15 +42,41 @@ const schema = yup.object({
 });
 
 export default function CommitteeForm({ onCreated }) {
-  const { control, register, handleSubmit, formState: { errors }, reset } = useForm({
+  const [types, setTypes] = useState([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
+  const [typesError, setTypesError] = useState('');
+  const { control, register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       name: '',
       section_number: '',
-      type: 'Maestros',
+      type: '',
       members: [{ full_name:'', ine_key:'', phone:'', email:'', section_number:'', invited_by:'' }]
     }
   });
+  // Load types on mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoadingTypes(true);
+        const { data } = await api.get('/committee-types');
+        if (!mounted) return;
+        const active = (data || []).filter(t => t.is_active !== false);
+        setTypes(active);
+        if (active.length > 0) {
+          // set default type to first
+          setValue('type', active[0].name, { shouldValidate: true });
+        }
+      } catch (e) {
+        console.error(e);
+        setTypesError('No se pudieron cargar los tipos');
+      } finally {
+        if (mounted) setLoadingTypes(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [reset]);
   const { fields, append, remove } = useFieldArray({ control, name: 'members' });
 
   const onSubmit = async (data) => {
@@ -60,7 +86,8 @@ export default function CommitteeForm({ onCreated }) {
     try {
       const res = await api.post('/committees', data);
       onCreated && onCreated(res.data);
-      reset({ name: '', section_number: '', type: 'Maestros', members: [{ full_name:'', ine_key:'', phone:'', email:'', section_number:'', invited_by:'' }] });
+      const defaultType = types[0]?.name || '';
+      reset({ name: '', section_number: '', type: defaultType, members: [{ full_name:'', ine_key:'', phone:'', email:'', section_number:'', invited_by:'' }] });
     } catch (e) { alert('Error al crear: ' + (e.response?.data?.detail || '')); }
   };
 
@@ -69,11 +96,16 @@ export default function CommitteeForm({ onCreated }) {
       <Typography variant="h6" gutterBottom>Nuevo Comité</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre del Comité" {...register('name')} error={!!errors.name} helperText={errors.name?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Presidente del comité: " {...register('name')} error={!!errors.name} helperText={errors.name?.message} /></Grid>
           <Grid item xs={12} sm={3}><TextField fullWidth label="Sección" {...register('section_number')} error={!!errors.section_number} /></Grid>
           <Grid item xs={12} sm={3}>
-            <TextField select fullWidth label="Tipo" {...register('type')}>
-              {['Maestros','Transportistas','Seccionales','Municipales','Deportistas'].map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            <TextField select fullWidth label="Tipo" {...register('type')} disabled={loadingTypes || types.length === 0}
+              error={!!errors.type}
+              helperText={errors.type?.message || (typesError || (loadingTypes ? 'Cargando tipos...' : (types.length === 0 ? 'No hay tipos disponibles' : '')))}
+            >
+              {types.map(t => (
+                <MenuItem key={t.id} value={t.name}>{t.name}</MenuItem>
+              ))}
             </TextField>
           </Grid>
           <Grid item xs={12}><Typography variant="subtitle1">Integrantes</Typography></Grid>

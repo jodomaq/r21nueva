@@ -17,7 +17,8 @@ class Committee(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     section_number: str = Field(index=True)
-    type: str = Field(index=True, description="Maestros|Transportistas|Seccionales|Municipales|Deportistas")
+    # Store the human-readable type name for now; validated against CommitteeType table
+    type: str = Field(index=True, description="Committee type name, validated against CommitteeType table")
     owner_id: int = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
@@ -50,3 +51,10 @@ class CommitteeDocument(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     committee: Optional[Committee] = Relationship(back_populates="documents")
+
+
+class CommitteeType(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, unique=True, description="Display name for the committee type")
+    is_active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)

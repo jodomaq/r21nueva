@@ -20,6 +20,16 @@ def create_committee(
     if len(data.members) > settings.max_members_per_committee:
         raise HTTPException(status_code=400, detail=f"Máximo {settings.max_members_per_committee} integrantes")
 
+    # Validate committee type against DB
+    ctype = session.exec(
+        select(models.CommitteeType).where(
+            models.CommitteeType.name == data.type,
+            models.CommitteeType.is_active == True,  # noqa: E712
+        )
+    ).first()
+    if not ctype:
+        raise HTTPException(status_code=400, detail="Tipo de comité inválido o inactivo")
+
     committee = models.Committee(
         name=data.name,
         section_number=data.section_number,
