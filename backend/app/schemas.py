@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from decimal import Decimal
 
 class CommitteeTypeOut(BaseModel):
     id: int
@@ -92,3 +93,43 @@ class OcrIneOut(BaseModel):
     phone: str | None = None
     email: str | None = None
     section_number: str | None = None
+
+
+# Attendance schemas
+class LocationData(BaseModel):
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    accuracy: Optional[int] = None
+
+
+class AttendanceCreate(BaseModel):
+    provider: str = "google"
+    credential: str
+    device_id: str
+    location: Optional[LocationData] = None
+    timezone: str = ""
+
+
+class AttendanceOut(BaseModel):
+    id: int
+    provider: str
+    provider_user_id: str
+    email: str
+    name: str
+    device_id: str
+    user_agent: str
+    ip: Optional[str]
+    latitude: Optional[Decimal]
+    longitude: Optional[Decimal]
+    accuracy: Optional[int]
+    timezone: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AttendanceResponse(BaseModel):
+    ok: bool
+    id: Optional[int] = None
+    error: Optional[str] = None

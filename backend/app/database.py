@@ -13,20 +13,7 @@ engine = create_engine(
 def init_db():
     import logging
     from . import models  # noqa: F401 ensure models imported
-
-    logging.info("Creating database tables (if not exist)...")
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-def init_db():
-    import logging
-    from . import models  # noqa: F401 ensure models imported
-
+    
     logging.info("Creating database tables (if not exist)...")
     SQLModel.metadata.create_all(engine)
 

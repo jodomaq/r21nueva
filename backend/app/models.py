@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
+from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
 
 
@@ -57,4 +58,20 @@ class CommitteeType(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True, unique=True, description="Display name for the committee type")
     is_active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class Attendance(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    provider: str = Field(max_length=20, default="google")  # Only google now
+    provider_user_id: str = Field(max_length=128, index=True)
+    email: str = Field(index=True)
+    name: str = Field(max_length=255, default="")
+    device_id: str = Field(max_length=128, index=True)
+    user_agent: str = Field(default="")
+    ip: Optional[str] = Field(default=None)
+    latitude: Optional[Decimal] = Field(default=None, max_digits=9, decimal_places=6)
+    longitude: Optional[Decimal] = Field(default=None, max_digits=9, decimal_places=6)
+    accuracy: Optional[int] = Field(default=None)
+    timezone: str = Field(max_length=64, default="")
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
