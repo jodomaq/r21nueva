@@ -52,14 +52,14 @@ async def oauth_attendance(
     
     # Verify Google OAuth token
     try:
-        if not settings.GOOGLE_CLIENT_ID:
+        if not settings.google_client_id:
             raise HTTPException(status_code=500, detail="GOOGLE_CLIENT_ID not configured")
         
         # Verify the Google ID token
         idinfo = google_id_token.verify_oauth2_token(
             attendance_data.credential, 
             google_requests.Request(), 
-            settings.GOOGLE_CLIENT_ID
+            settings.google_client_id
         )
         
         # Extract user information from token

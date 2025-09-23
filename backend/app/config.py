@@ -41,9 +41,6 @@ class Settings(BaseModel):
 
 settings = Settings()
 
-# Property for easier access to Google Client ID
-settings.GOOGLE_CLIENT_ID = settings.google_client_id
-
 # Si no hay DATABASE_URL, construye una para MariaDB
 if not settings.database_url:
     settings.database_url = (
