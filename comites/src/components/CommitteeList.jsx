@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Grid, IconButton, Box, Tooltip } from '@mui/material';
+import { Card, CardContent, Typography, Grid, IconButton, Box, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import api from '../api';
 import DocumentUploadDialog from './DocumentUploadDialog';
+import CommitteeForm from './CommitteeForm';
 
 export default function CommitteeList({ onOpenMembers }) {
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [openNew, setOpenNew] = useState(false);
 
   const load = async () => {
     const { data } = await api.get('/committees');
@@ -27,7 +30,10 @@ export default function CommitteeList({ onOpenMembers }) {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>Mis Comités</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', mb:1 }}>
+        <Typography variant="h6" gutterBottom sx={{ mb:0 }}>Mis Comités</Typography>
+        <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenNew(true)}>Nuevo Comité</Button>
+      </Box>
       {items.length === 0 && <Typography variant="body2">No hay comités disponibles. Para agregar clic en ➔ Menú ➔ Nuevo Comité</Typography>}
       <Grid container spacing={2}>
         {items.map(c => (
@@ -58,6 +64,15 @@ export default function CommitteeList({ onOpenMembers }) {
         ))}
       </Grid>
       {selected && <DocumentUploadDialog committee={selected} onClose={() => { setSelected(null); load(); }} />}
+      <Dialog open={openNew} fullWidth maxWidth="lg" onClose={() => setOpenNew(false)}>
+        <DialogTitle>Crear Nuevo Comité</DialogTitle>
+        <DialogContent dividers>
+          <CommitteeForm onCreated={() => { setOpenNew(false); load(); }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenNew(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
