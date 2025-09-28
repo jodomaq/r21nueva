@@ -19,7 +19,7 @@ async def upload_documents(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.id:
+    if not committee or committee.owner_id != user.email:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
 
     saved_docs = []
@@ -56,7 +56,7 @@ def list_documents(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.id:
+    if not committee or committee.owner_id != user.email:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     docs = session.exec(
         select(models.CommitteeDocument).where(models.CommitteeDocument.committee_id == committee_id)
@@ -72,7 +72,7 @@ def delete_document(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.id:
+    if not committee or committee.owner_id != user.email:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     doc = session.get(models.CommitteeDocument, document_id)
     if not doc or doc.committee_id != committee_id:

@@ -6,7 +6,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../api';
 import { useAuth } from '../AuthContext';
 
-export default function MemberList({ committeeId, onBack, onAddMember }) {
+export default function MemberList({ committeeId, onBack, onAddMember, readonly = false }) {
   const [committee, setCommittee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,14 +37,14 @@ export default function MemberList({ committeeId, onBack, onAddMember }) {
     }
   };
 
-  const canAdd = (committee?.members?.length || 0) < 10; // backend setting also enforces this
+  const canAdd = !readonly && (committee?.members?.length || 0) < 10; // backend setting also enforces this
 
   return (
     <Paper sx={{ p:2 }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb:2 }}>
         <IconButton onClick={onBack}><ArrowBackIcon /></IconButton>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>Integrantes</Typography>
-        <Tooltip title={canAdd ? 'Añadir integrante' : 'Límite alcanzado'}>
+        <Tooltip title={canAdd ? 'Añadir integrante' : (readonly ? 'No tienes permiso para agregar' : 'Límite alcanzado')}>
           <span>
             <IconButton color="primary" onClick={onAddMember} disabled={!canAdd}>
               <AddIcon />
@@ -68,7 +68,7 @@ export default function MemberList({ committeeId, onBack, onAddMember }) {
                   key={m.id}
                   divider
                   secondaryAction={
-                    <IconButton edge="end" color="error" onClick={() => removeMember(m.id)}>
+                    <IconButton edge="end" color="error" onClick={() => removeMember(m.id)} disabled={readonly}>
                       <DeleteIcon />
                     </IconButton>
                   }

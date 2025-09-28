@@ -18,6 +18,7 @@ if (!googleClientId) {
 
 function InternalAuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [assignment, setAssignment] = useState({ role: null, committees_owned: [] });
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSuccess = async credentialResponse => {
@@ -27,6 +28,16 @@ function InternalAuthProvider({ children }) {
       const { data } = await api.post('/auth/google', { id_token });
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
+      console.log('User after login', data.user);
+      // Fetch assignment after login
+      try {
+        const a = await api.get('/auth/me/assignment');
+        console.log('Assignment after login', a.data);
+        setAssignment(a.data || { role: null, committees_owned: [] });
+      } catch (err) {
+        console.warn('No se pudo obtener el rol', err);
+        setAssignment({ role: null, committees_owned: [] });
+      }
     } catch (e) {
       console.error(e);
       alert('Error de autenticación');
@@ -39,10 +50,31 @@ function InternalAuthProvider({ children }) {
     localStorage.removeItem('token');
     googleLogout();
     setUser(null);
+    setAssignment({ role: null, committees_owned: [] });
   };
 
+  // Try bootstrap from existing token
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    (async () => {
+      try {
+        const me = await api.get('/auth/me');
+        setUser(me.data);
+        // There is no backend endpoint for /auth/me user profile yet; we can infer user by calling /committees (which requires auth) or skip.
+        // Minimal: fetch assignment to decide UI
+        const a = await api.get('/auth/me/assignment');
+        setAssignment(a.data || { role: null, committees_owned: [] });
+        // Optionally, get minimal user info by decoding token payload; skip to keep logic simple.
+      } catch (err) {
+        console.warn('Token inválido o expirado', err);
+        localStorage.removeItem('token');
+      }
+    })();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, setUser, handleGoogleSuccess, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, assignment, setAssignment, handleGoogleSuccess, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

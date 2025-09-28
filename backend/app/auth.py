@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from .config import settings
 from .database import get_session
+from .dependencies import get_current_user
 from . import models, schemas
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -51,3 +52,33 @@ def google_login(data: GoogleAuthIn, session: Session = Depends(get_session)):
 
     token = create_jwt(user)
     return schemas.TokenResponse(access_token=token, user=user)  # type: ignore[arg-type]
+
+
+@router.get("/me", response_model=schemas.UserOut)
+def get_me(user: models.User = Depends(get_current_user)):
+    return user
+
+
+@router.get("/me/assignment", response_model=schemas.AssignmentOut)
+def get_my_assignment(
+    session: Session = Depends(get_session),
+    user: models.User = Depends(get_current_user),
+):
+    # Fetch latest role assignment for this user if exists
+    role = None
+    try:
+        ua = session.exec(
+            select(models.UserAssignment)
+            .where(models.UserAssignment.user_id == user.id)
+            .order_by(models.UserAssignment.created_at.desc())
+        ).first()
+        if ua:
+            role = ua.role
+    except Exception:
+        role = None
+
+    committees = session.exec(
+        select(models.Committee).where(models.Committee.owner_id == user.email)
+    ).all() or []
+    print("User", user.email, "has role", role, "and committees", [c.id for c in committees])
+    return schemas.AssignmentOut(role=role, committees_owned=committees)  # type: ignore[arg-type]

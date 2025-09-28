@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { Box, TextField, Button, Grid, Paper, Typography, Stack, MenuItem } from '@mui/material';
+import React, { useMemo, useRef, useState } from 'react';
+import { Box, TextField, Button, Grid, Paper, Typography, Stack, Tooltip, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import api from '../api';
+import { useIneOcr } from '../hooks/useIneOcr';
 
 export default function AddMember({ committeeId, onAdded, onCancel }) {
   const [form, setForm] = useState({
@@ -13,9 +15,27 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
     invited_by: ''
   });
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
+  const { scanningIndex, scanDocument } = useIneOcr();
 
   const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const sections = useMemo(() => Array.from({ length: 2734 }, (_, i) => String(i + 1)), []);
+  const handleScanClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const onPickImage = async (ev) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!file) return;
+    const data = await scanDocument(0, file);
+    if (!data) return;
+    if (data.full_name) setField('full_name', data.full_name);
+    if (data.ine_key) setField('ine_key', data.ine_key);
+    if (data.phone) setField('phone', data.phone);
+    if (data.email) setField('email', data.email);
+    if (data.section_number) setField('section_number', String(data.section_number));
+  };
   const submit = async (e) => {
     e.preventDefault();
     // simple required validation
@@ -64,6 +84,29 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
             </TextField>
           </Grid>
           <Grid item xs={12} sm={2}><TextField fullWidth label="Invitado por" value={form.invited_by} onChange={e => setField('invited_by', e.target.value)} /></Grid>
+          <Grid item xs={12} sm={2}>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              ref={fileInputRef}
+              onChange={onPickImage}
+            />
+            <Tooltip title="Escanear identificación">
+              <span>
+                <Button
+                  variant="outlined"
+                  startIcon={scanningIndex === 0 ? <CircularProgress size={18} /> : <PhotoCameraIcon />}
+                  onClick={handleScanClick}
+                  disabled={scanningIndex === 0}
+                  sx={{ padding: '7px' }}
+                >
+                  {scanningIndex === 0 ? 'Procesando…' : ''}
+                </Button>
+              </span>
+            </Tooltip>
+          </Grid>
           <Grid item xs={12}>
             <Stack direction="row" spacing={2}>
               <Button type="submit" variant="contained" disabled={saving}>Añadir</Button>

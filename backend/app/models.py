@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
 
 
+# ...existing code...
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
@@ -12,20 +13,72 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     committees: List["Committee"] = Relationship(back_populates="owner")
+    # NUEVO: asignaciones jerárquicas
+    assignments: List["UserAssignment"] = Relationship(back_populates="user")
+# ...existing code...
 
 
+# NUEVO
+class AdministrativeUnit(SQLModel, table=True):
+    """
+    Unidad territorial jerárquica:
+    STATE -> REGION -> DISTRICT -> MUNICIPALITY -> SECTION
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+    code: Optional[str] = Field(default=None, index=True, description="Clave o número oficial (ej: sección)")
+    unit_type: str = Field(index=True)  # 'STATE','REGION','DISTRICT','MUNICIPALITY','SECTION'
+    parent_id: Optional[int] = Field(default=None, foreign_key="administrativeunit.id", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    parent: Optional["AdministrativeUnit"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "AdministrativeUnit.id"})
+    children: List["AdministrativeUnit"] = Relationship(back_populates="parent")
+
+    # Usuarios asignados (coordinadores, delegado, etc.)
+    user_assignments: List["UserAssignment"] = Relationship(back_populates="administrative_unit")
+
+    # Comités ligados a esta unidad (especiales en DISTRICT, seccionales en SECTION)
+    committees: List["Committee"] = Relationship(back_populates="administrative_unit")
+
+
+# NUEVO
+class UserAssignment(SQLModel, table=True):
+    """
+    Asigna un usuario a una unidad con un rol jerárquico.
+    Rol esperado:
+      - COORDINADOR_ESTATAL (en STATE)
+      - DELEGADO_REGIONAL (en REGION)
+      - COORDINADOR_DISTRITAL (en DISTRICT)
+      - COORDINADOR_MUNICIPAL (en MUNICIPALITY)
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    administrative_unit_id: int = Field(foreign_key="administrativeunit.id", index=True)
+    role: int = Field(index=True) # 1=COORDINADOR_ESTATAL, 2=DELEGADO_REGIONAL, 3=COORDINADOR_DISTRITAL, 4=COORDINADOR_MUNICIPAL, 5=COORDINADOR_SECCIONAL, 6=PRESIDENTE_COMITE
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    user: Optional[User] = Relationship(back_populates="assignments")
+    administrative_unit: Optional[AdministrativeUnit] = Relationship(back_populates="user_assignments")
+
+
+# ...existing code...
 class Committee(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    section_number: str = Field(index=True)
+    section_number: str = Field(index=True)  # DEPRECATED: usar administrative_unit_id (SECTION) para seccionales
     # Store the human-readable type name for now; validated against CommitteeType table
-    type: str = Field(index=True, description="Committee type name, validated against CommitteeType table")
-    owner_id: int = Field(foreign_key="user.id")
+    type: str = Field(index=True, description="Committee type name, validated against CommitteeType table")  # 'seccional' | 'especial'
+    owner_id: str = Field(foreign_key="user.email", index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    # NUEVO: unidad territorial. Para comités especiales apuntará al DISTRICT.
+    administrative_unit_id: Optional[int] = Field(default=None, foreign_key="administrativeunit.id", index=True)
 
     owner: Optional[User] = Relationship(back_populates="committees")
     members: List["CommitteeMember"] = Relationship(back_populates="committee")
     documents: List["CommitteeDocument"] = Relationship(back_populates="committee")
+    administrative_unit: Optional[AdministrativeUnit] = Relationship(back_populates="committees")
+# ...existing code...
 
 
 class CommitteeMember(SQLModel, table=True):
@@ -75,3 +128,16 @@ class Attendance(SQLModel, table=True):
     accuracy: Optional[int] = Field(default=None)
     timezone: str = Field(max_length=64, default="")
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+class Seccion(SQLModel, table=True):
+    """
+    Mapeo de la tabla MySQL `seccion`.
+    Nota: La tabla original no declara PRIMARY KEY; aquí usamos `id` como PK para compatibilidad con SQLModel.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    municipio: Optional[int] = Field(default=None, index=True)
+    nombre_municipio: Optional[str] = Field(default=None, max_length=50)
+    distrito: Optional[int] = Field(default=None, index=True)
+    nombre_distrito: Optional[str] = Field(default=None, max_length=50)
+    distrito_federal: Optional[int] = Field(default=None, index=True)
+

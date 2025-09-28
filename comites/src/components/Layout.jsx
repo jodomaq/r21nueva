@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Drawer, List, ListItem, ListItemText, Box, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../AuthContext';
@@ -6,12 +6,15 @@ import logo from '../assets/logoR21blanco.png';
 
 export default function Layout({ children, onNavigate }) {
   const [open, setOpen] = useState(false);
-  const { logout, user } = useAuth();
+  const { logout, user, assignment } = useAuth();
+  const role = assignment?.role ?? null;
+  const canCreateCommittees = role !== 6;
 
-  const menuItems = [
-    { key: 'committees', label: 'Listar Comités' },
-    { key: 'new', label: 'Nuevo Comité' }
-  ];
+  const menuItems = useMemo(() => {
+    const items = [{ key: 'committees', label: 'Listar Comités' }];
+    if (canCreateCommittees) items.push({ key: 'new', label: 'Nuevo Comité' });
+    return items;
+  }, [canCreateCommittees]);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -22,7 +25,7 @@ export default function Layout({ children, onNavigate }) {
           </IconButton>
           <Box component="img" src={logo} alt="Logo" sx={{ height: 40, mr: 2 }} />
           <Typography variant="h6" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>Michoacán</Typography>
-          <Typography variant="h6" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>Usuario: {user.name}</Typography>
+          <Typography variant="h6" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>Usuario: {user?.name || '—'}</Typography>
           
           <Button sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }} style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }} color="inherit" onClick={logout}>Salir</Button>
         </Toolbar>

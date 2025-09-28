@@ -88,6 +88,8 @@ function App() {
           text: 'signin_with',
           shape: 'pill'
         })
+      }else{
+        window.google.accounts.id.prompt()
       }
       setReady(true)
     } catch (e) {
@@ -102,7 +104,7 @@ function App() {
       <hr />
       <h2>Registro de asistencia</h2>
       <p>Inicia sesión con Google para registrar tu asistencia con ubicación.</p>
-      <div ref={buttonDivRef} />
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }} ref={buttonDivRef} />
       {location && (
         <p style={{ fontSize: 12, color: '#555' }}>
           Ubicación: {location.lat?.toFixed(6)}, {location.lng?.toFixed(6)} (±{location.accuracy}m)

@@ -62,7 +62,7 @@ class CommitteeCreate(CommitteeBase):
 class CommitteeOut(CommitteeBase):
     id: int
     created_at: datetime
-    owner_id: int
+    owner_id: str
     members: List[CommitteeMemberOut] = []
 
     class Config:
@@ -133,3 +133,17 @@ class AttendanceResponse(BaseModel):
     ok: bool
     id: Optional[int] = None
     error: Optional[str] = None
+
+
+# Assignment/Access schemas
+class SimpleCommitteeOut(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class AssignmentOut(BaseModel):
+    role: Optional[int] = None
+    committees_owned: List[SimpleCommitteeOut] = []

@@ -7,7 +7,7 @@ import api from '../api';
 import DocumentUploadDialog from './DocumentUploadDialog';
 import CommitteeForm from './CommitteeForm';
 
-export default function CommitteeList({ onOpenMembers }) {
+export default function CommitteeList({ onOpenMembers, canCreate = true, canOpenMembers = true }) {
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
   const [openNew, setOpenNew] = useState(false);
@@ -32,14 +32,27 @@ export default function CommitteeList({ onOpenMembers }) {
     <Box>
       <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', mb:1 }}>
         <Typography variant="h6" gutterBottom sx={{ mb:0 }}>Mis Comités</Typography>
-        <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenNew(true)}>Nuevo Comité</Button>
+        <Tooltip title={canCreate ? 'Crear un nuevo comité' : 'Tu rol no permite crear comités'}>
+          <span>
+            <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenNew(true)} disabled={!canCreate}>Nuevo Comité</Button>
+          </span>
+        </Tooltip>
       </Box>
-      {items.length === 0 && <Typography variant="body2">No hay comités disponibles. Para agregar clic en ➔ Menú ➔ Nuevo Comité</Typography>}
+      {items.length === 0 && (
+        <Typography variant="body2">
+          {canCreate
+            ? 'No hay comités disponibles. Para agregar clic en ➔ Menú ➔ Nuevo Comité'
+            : 'No tienes comités asignados. Tu rol solo permite gestionar integrantes de tu propio comité cuando exista.'}
+        </Typography>
+      )}
       <Grid container spacing={2}>
         {items.map(c => (
           <Grid item xs={12} sm={6} md={4} key={c.id}>
             <Card>
-              <CardContent onClick={() => onOpenMembers && onOpenMembers(c)} sx={{ cursor: 'pointer' }}>
+              <CardContent
+                onClick={() => canOpenMembers && onOpenMembers && onOpenMembers(c)}
+                sx={{ cursor: canOpenMembers ? 'pointer' : 'default' }}
+              >
                 <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{c.name}</Typography>
                   <Box onClick={(e) => e.stopPropagation()}>
@@ -48,11 +61,13 @@ export default function CommitteeList({ onOpenMembers }) {
                         <AttachFileIcon />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Eliminar comité">
-                      <IconButton size="small" color="error" onClick={() => removeCommittee(c)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
+                    {canCreate && (
+                      <Tooltip title="Eliminar comité">
+                        <IconButton size="small" color="error" onClick={() => removeCommittee(c)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </Box>
                 <Typography variant="body2">Sección: {c.section_number}</Typography>
