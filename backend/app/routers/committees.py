@@ -1,7 +1,7 @@
 import os
 import shutil
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, or_, select
 from typing import List
 from .. import models, schemas
 from ..database import get_session
@@ -79,7 +79,12 @@ def list_committees(
 ):
     committees = session.exec(
         select(models.Committee)
-        .where(models.Committee.owner_id == user.email or models.Committee.email == user.email)
+        .where(
+            or_(
+                models.Committee.owner_id == user.email,
+                models.Committee.email == user.email
+            )
+        )
         .order_by(models.Committee.created_at.desc())
     ).all()
     return committees
