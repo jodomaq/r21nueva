@@ -77,7 +77,7 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
               onChange={e => setField('section_number', e.target.value)}
               SelectProps={{ native: true }}
             >
-              <option value="">Selecciona sección</option>
+              <option value=""></option>
               {sections.map((n) => (
                 <option key={n} value={n}>{n}</option>
               ))}

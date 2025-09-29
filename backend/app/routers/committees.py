@@ -46,6 +46,10 @@ def create_committee(
         section_number=data.section_number,
         type=data.type,
         owner_id=user.email,
+        presidente=data.presidente,
+        email=data.email,
+        clave_afiliacion=data.clave_afiliacion,
+        telefono=data.telefono,
     )
     session.add(committee)
     session.flush()  # get committee id
@@ -75,7 +79,7 @@ def list_committees(
 ):
     committees = session.exec(
         select(models.Committee)
-        .where(models.Committee.owner_id == user.email)
+        .where(models.Committee.owner_id == user.email or models.Committee.email == user.email)
         .order_by(models.Committee.created_at.desc())
     ).all()
     return committees
@@ -84,7 +88,7 @@ def list_committees(
 @router.get("/{committee_id}", response_model=schemas.CommitteeOut)
 def get_committee(committee_id: int, session: Session = Depends(get_session), user: models.User = Depends(get_current_user)):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.email:
+    if not committee or (committee.owner_id != user.email and committee.email != user.email):
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     return committee
 
@@ -97,7 +101,7 @@ def add_member(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.email:
+    if not committee or (committee.owner_id != user.email and committee.email != user.email):
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     # Only role 6 (presidente del comité) can add members, and only to their own committee (already enforced)
     ua = session.exec(

@@ -72,6 +72,10 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
                 </Box>
                 <Typography variant="body2">Sección: {c.section_number}</Typography>
                 <Typography variant="body2">Tipo: {c.type}</Typography>
+                <Typography variant="body2">Presidente: {c.presidente || '—'}</Typography>
+                <Typography variant="body2">Correo: {c.email || '—'}</Typography>
+                <Typography variant="body2">Clave afiliación: {c.clave_afiliacion || '—'}</Typography>
+                <Typography variant="body2">Teléfono: {c.telefono || '—'}</Typography>
                 <Typography variant="body2">Integrantes: {c.members?.length}</Typography>
               </CardContent>
             </Card>

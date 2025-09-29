@@ -34,6 +34,38 @@ def init_db():
                 conn.execute(text("ALTER TABLE committee MODIFY COLUMN owner_id VARCHAR(255) NOT NULL"))
                 conn.commit()
 
+            for column_name, column_type in [
+                ("presidente", "VARCHAR(255)"),
+                ("email", "VARCHAR(255)"),
+                ("clave_afiliacion", "VARCHAR(255)"),
+                ("telefono", "VARCHAR(64)"),
+            ]:
+                column_result = conn.execute(text("SHOW COLUMNS FROM committee LIKE :column"), {"column": column_name})
+                column_info = column_result.mappings().first()
+
+                if column_info is None:
+                    logging.info("Adding column committee.%s (legacy migration)", column_name)
+                    conn.execute(
+                        text(
+                            f"ALTER TABLE committee ADD COLUMN {column_name} {column_type} NOT NULL DEFAULT ''"
+                        )
+                    )
+                    conn.commit()
+                else:
+                    logging.debug("Backfilling NULL values in committee.%s", column_name)
+                    conn.execute(text(f"UPDATE committee SET {column_name} = '' WHERE {column_name} IS NULL"))
+                    conn.commit()
+
+                    needs_alter = column_info.get("Null", "YES") == "YES" or (column_info.get("Default") not in ("", "''"))
+                    if needs_alter:
+                        logging.info("Normalizing column committee.%s to NOT NULL DEFAULT ''", column_name)
+                        conn.execute(
+                            text(
+                                f"ALTER TABLE committee MODIFY COLUMN {column_name} {column_type} NOT NULL DEFAULT ''"
+                            )
+                        )
+                        conn.commit()
+
 
 def get_session():
     with Session(engine) as session:

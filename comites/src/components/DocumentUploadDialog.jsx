@@ -34,6 +34,8 @@ export default function DocumentUploadDialog({ committee, onClose }) {
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Documentos de {committee.name}</DialogTitle>
       <DialogContent>
+        <Typography variant="body2" sx={{ mb: 1 }}>Presidente: {committee.presidente || '—'} · Correo: {committee.email || '—'}</Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>Clave afiliación: {committee.clave_afiliacion || '—'} · Teléfono: {committee.telefono || '—'}</Typography>
         <Box sx={{ display:'flex', flexDirection:'column', gap:2 }}>
           <input type="file" accept="image/*" capture="environment" multiple onChange={e => setFiles(Array.from(e.target.files))} />
           {files.length > 0 && <Typography>{files.length} archivo(s) listo(s)</Typography>}

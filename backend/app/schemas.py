@@ -53,9 +53,14 @@ class CommitteeBase(BaseModel):
     name: str
     section_number: str
     type: str
+    presidente: str
+    email: str
+    clave_afiliacion: str
+    telefono: str
 
 
 class CommitteeCreate(CommitteeBase):
+    email: EmailStr
     members: List[CommitteeMemberCreate]
 
 
@@ -139,6 +144,10 @@ class AttendanceResponse(BaseModel):
 class SimpleCommitteeOut(BaseModel):
     id: int
     name: str
+    presidente: str
+    email: str
+    clave_afiliacion: str
+    telefono: str
 
     class Config:
         from_attributes = True

@@ -10,7 +10,11 @@ import api from '../api';
 const schema = yup.object({
   name: yup.string().required('Requerido'),
   section_number: yup.string().required('Requerido'),
-  type: yup.string().required('Requerido')
+  type: yup.string().required('Requerido'),
+  presidente: yup.string().required('Requerido'),
+  email: yup.string().email('Email inválido').required('Requerido'),
+  clave_afiliacion: yup.string().required('Requerido'),
+  telefono: yup.string().required('Requerido')
 });
 
 export default function CommitteeForm({ onCreated }) {
@@ -22,7 +26,11 @@ export default function CommitteeForm({ onCreated }) {
     defaultValues: {
       name: '',
       section_number: '',
-      type: ''
+      type: '',
+      presidente: '',
+      email: '',
+      clave_afiliacion: '',
+      telefono: ''
     }
   });
   // Load types on mount
@@ -57,13 +65,25 @@ export default function CommitteeForm({ onCreated }) {
       name: data.name,
       section_number: data.section_number,
       type: data.type,
+      presidente: data.presidente,
+      email: data.email,
+      clave_afiliacion: data.clave_afiliacion,
+      telefono: data.telefono,
       members: []
     };
     try {
       const res = await api.post('/committees', payload);
       onCreated && onCreated(res.data);
       const defaultType = types[0]?.name || '';
-      reset({ name: '', section_number: '', type: defaultType });
+      reset({
+        name: '',
+        section_number: '',
+        type: defaultType,
+        presidente: '',
+        email: '',
+        clave_afiliacion: '',
+        telefono: ''
+      });
     } catch (e) { alert('Error al crear: ' + (e.response?.data?.detail || '')); }
   };
 
@@ -72,7 +92,7 @@ export default function CommitteeForm({ onCreated }) {
       <Typography variant="h6" gutterBottom>Nuevo Comité</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}><TextField fullWidth label="Presidente del comité: " {...register('name')} error={!!errors.name} helperText={errors.name?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre del comité" {...register('name')} error={!!errors.name} helperText={errors.name?.message} /></Grid>
           <Grid item xs={12} sm={3}>
             <TextField
               select
@@ -97,6 +117,10 @@ export default function CommitteeForm({ onCreated }) {
               ))}
             </TextField>
           </Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre del presidente" {...register('presidente')} error={!!errors.presidente} helperText={errors.presidente?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Email del presidente" type="email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Clave de afiliación" {...register('clave_afiliacion')} error={!!errors.clave_afiliacion} helperText={errors.clave_afiliacion?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Teléfono" {...register('telefono')} error={!!errors.telefono} helperText={errors.telefono?.message} /></Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained">Guardar Comité</Button>
           </Grid>

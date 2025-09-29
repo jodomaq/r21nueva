@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
@@ -55,7 +55,7 @@ class UserAssignment(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     administrative_unit_id: int = Field(foreign_key="administrativeunit.id", index=True)
     role: int = Field(index=True) # 1=COORDINADOR_ESTATAL, 2=DELEGADO_REGIONAL, 3=COORDINADOR_DISTRITAL, 4=COORDINADOR_MUNICIPAL, 5=COORDINADOR_SECCIONAL, 6=PRESIDENTE_COMITE
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
 
     user: Optional[User] = Relationship(back_populates="assignments")
     administrative_unit: Optional[AdministrativeUnit] = Relationship(back_populates="user_assignments")
@@ -70,6 +70,10 @@ class Committee(SQLModel, table=True):
     type: str = Field(index=True, description="Committee type name, validated against CommitteeType table")  # 'seccional' | 'especial'
     owner_id: str = Field(foreign_key="user.email", index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    presidente: str = Field(default="", description="Nombre del presidente del comité")
+    email: str = Field(default="", description="Correo electrónico del presidente del comité")
+    clave_afiliacion: str = Field(default="", description="Clave de afiliación del presidente del comité")
+    telefono: str = Field(default="", description="Teléfono del presidente del comité")
 
     # NUEVO: unidad territorial. Para comités especiales apuntará al DISTRICT.
     administrative_unit_id: Optional[int] = Field(default=None, foreign_key="administrativeunit.id", index=True)

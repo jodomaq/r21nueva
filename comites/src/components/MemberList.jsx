@@ -59,6 +59,8 @@ export default function MemberList({ committeeId, onBack, onAddMember, readonly 
           <Box sx={{ mb:2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight:600 }}>Nombre del comité: {committee.name} - Encargado: {user?.name || '—'}</Typography>
             <Typography variant="body2">Sección: {committee.section_number} · Tipo: {committee.type}</Typography>
+            <Typography variant="body2">Presidente: {committee.presidente || '—'} · Correo: {committee.email || '—'}</Typography>
+            <Typography variant="body2">Clave afiliación: {committee.clave_afiliacion || '—'} · Teléfono: {committee.telefono || '—'}</Typography>
             <Typography variant="body2">Integrantes: {committee.members?.length || 0} / 10</Typography>
           </Box>
           {committee.members?.length ? (
