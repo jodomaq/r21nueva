@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { GoogleLogin, googleLogout, GoogleOAuthProvider } from '@react-oauth/google';
 import api from './api';
+import logo from './assets/logoR21blanco.png';
 
 const AuthContext = createContext(null);
 
@@ -99,20 +100,23 @@ export function RequireAuth({ children }) {
 export function LoginScreen() {
   const { handleGoogleSuccess, loading } = useAuth();
   return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:24}}>
-      <h2>Comités MORENA</h2>
-      <p>Inicia sesión con tu cuenta de Gmail</p>
-      <GoogleLogin
-        onSuccess={handleGoogleSuccess}
-        onError={() => alert('Error al iniciar sesión')}
-        text="signin_with"
-        shape="rectangular"
-        size="large"
-        theme="outline"
-        // Quita useOneTap si no está correctamente configurado el origin
-        // useOneTap
-      />
-      {loading && <span>Verificando...</span>}
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:24, backgroundColor:'#8b1e3f'}}>
+    <h2 style={{color:'white'}}>Comités territoriales</h2>
+    <img src={logo} alt="Logo R21" style={{ height: 80 }} />
+      <div style={{backgroundColor:'rgba(255, 255, 255)', padding: 16, borderRadius: 8}} >
+        <p>Inicia sesión con tu cuenta de Gmail</p>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => alert('Error al iniciar sesión')}
+          text="signin_with"
+          shape="rectangular"
+          size="large"
+          theme="outline"
+          // Quita useOneTap si no está correctamente configurado el origin
+          // useOneTap
+        />
+        {loading && <span>Verificando...</span>}
+      </div>
     </div>
   );
 }
