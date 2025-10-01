@@ -1,0 +1,20 @@
+Crea un dashboard en la carpeta dashboard, suprimiendo el código inecesario, usando react js.
+El backend del dashboard es el proyecto de la carpeta backend, añade el código necesario, los endpoints y las consultas.
+El dashboard deberá mostrar las siguiente consultas usando gráficas, tablas o cualquier otro widget que consideres adecuado:
+1. Listado de asistencia a eventos conforme al modelo Attendance del backend
+2. Gráfica de comités por usuario 
+3. Gráfica de comités por sección (usando una consulta join con el modelo Seccion, el cual tiene los números de sección)
+4. Gráfica de comités por municipio (usando una consulta join con el modelo Seccion, el cual tiene los nombres de los municipios)
+5. Arbol jerárquico de acuerdo al modelo AdministrativeUnit
+6. Listado de usuarios y roles de acuerdo al modelo UserAssignment
+7. Listado de comités, con vista detalle de comité
+8. Galería de documentos subidos
+9. Números de cantidad de comités, cantidad de promovidos, cantidad de municipios cubiertos (n de 113), porcentaje de secciones (seccion del comite sobre total de secciones)
+10. Gráfica de tipos de comités creados
+11. Listado de nombres del presidente y teléfono de acuerdo al modelo Committee, con un ícono para enviar mensaje de whatsapp
+12. Botón para exportar listado de comités y miembros a excel
+13. Mapa de Michoacán, México con los puntos donde se han llevado a cabo reuniones de acuerdo a latitude y longitude del modelo Attendance
+14. Impresión de actas de comités creados con listado de miembros en pdf, con un folio hash electrónico para cada acta
+15. Coloca un reloj digital que vaya contando los días horas y minutos para la fecha de las próximas elecciones en Michoacán, 4 de julio de 2027
+Prepara el dashboard con los colores blanco, #8b1e3f y gris. Usando el logotipo ../assets/logoR21blanco.png
+Usa textos relacionados al segundo pido de la cuarta transformación R21 MORENA en Michoacán.

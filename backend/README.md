@@ -37,8 +37,22 @@ uvicorn app.main:app --reload --port 8000
 - GET /committees/{id}/documents
 - GET /uploads/... (archivos estáticos)
 
+## Endpoints para el dashboard
+- GET /dashboard/attendance — listado de asistencias (modelo `Attendance`)
+- GET /dashboard/attendance/map — coordenadas para mapa de reuniones
+- GET /dashboard/committee-stats — totales por usuario, sección, municipio y tipo de comité
+- GET /dashboard/administrative-tree — árbol jerárquico de `AdministrativeUnit`
+- GET /dashboard/user-assignments — responsables y roles (`UserAssignment`)
+- GET /dashboard/committees — listado completo de comités con integrantes y documentos
+- GET /dashboard/committees/{id} — detalle de comité con integrantes y acta
+- GET /dashboard/documents — galería global de documentos
+- GET /dashboard/metrics — métricas agregadas (comités, promovidos, cobertura)
+- GET /dashboard/exports/committees.xlsx — exportación a Excel de comités e integrantes
+- GET /dashboard/committees/{id}/acta.pdf — acta en PDF con folio hash y listado de integrantes
+
 Autenticación: Enviar encabezado `Authorization: Bearer <token>` retornado por /auth/google.
 
 ## Notas
 - Máximo 10 integrantes por comité (configurable). 
 - Solo se aceptan imágenes en la carga de documentos.
+- Para generar los reportes se utilizan `openpyxl` (Excel) y `fpdf2` (PDF); asegúrate de instalar dependencias con `pip install -r requirements.txt`.

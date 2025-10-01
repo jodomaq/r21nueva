@@ -140,6 +140,149 @@ class AttendanceResponse(BaseModel):
     error: Optional[str] = None
 
 
+# Dashboard stats schemas
+class CommitteeOwnerStat(BaseModel):
+    owner_email: str
+    owner_name: Optional[str] = None
+    owner_id: Optional[int] = None
+    total: int
+
+
+class CommitteeLocationStat(BaseModel):
+    code: Optional[str] = None
+    label: str
+    municipality: Optional[str] = None
+    total: int
+
+
+class CommitteeTypeStat(BaseModel):
+    type: str
+    total: int
+
+
+class CommitteeStatsResponse(BaseModel):
+    by_user: List[CommitteeOwnerStat]
+    by_section: List[CommitteeLocationStat]
+    by_municipality: List[CommitteeLocationStat]
+    by_type: List[CommitteeTypeStat]
+
+
+class AssignmentUserSummary(BaseModel):
+    user_id: int
+    user_name: str
+    user_email: EmailStr
+    role: int
+    role_label: str
+
+
+class AdministrativeUnitNode(BaseModel):
+    id: int
+    name: str
+    code: Optional[str] = None
+    unit_type: str
+    assignments: List[AssignmentUserSummary] = []
+    children: List["AdministrativeUnitNode"] = []
+
+    class Config:
+        from_attributes = True
+
+
+class UserAssignmentRow(BaseModel):
+    assignment_id: int
+    user_id: int
+    user_name: str
+    user_email: EmailStr
+    role: int
+    role_label: str
+    administrative_unit_id: int
+    administrative_unit_name: str
+    administrative_unit_type: str
+    created_at: datetime
+
+
+class AdministrativeUnitRef(BaseModel):
+    id: int
+    name: str
+    unit_type: str
+    code: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SectionRef(BaseModel):
+    id: Optional[int] = None
+    municipio: Optional[int] = None
+    nombre_municipio: Optional[str] = None
+    distrito: Optional[int] = None
+    nombre_distrito: Optional[str] = None
+    distrito_federal: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentWithUrl(DocumentOut):
+    url: str
+
+
+class CommitteeDashboardOut(BaseModel):
+    id: int
+    name: str
+    section_number: str
+    type: str
+    owner_id: str
+    owner_name: Optional[str] = None
+    created_at: datetime
+    presidente: str
+    email: str
+    clave_afiliacion: str
+    telefono: str
+    administrative_unit: Optional[AdministrativeUnitRef] = None
+    section: Optional[SectionRef] = None
+    members: List[CommitteeMemberOut] = []
+    documents: List[DocumentWithUrl] = []
+    total_members: int
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentGalleryItem(BaseModel):
+    id: int
+    committee_id: int
+    committee_name: str
+    url: str
+    original_name: str
+    content_type: str
+    size: int
+    created_at: datetime
+
+
+class DashboardMetrics(BaseModel):
+    total_committees: int
+    total_promovidos: int
+    municipios_cubiertos: int
+    municipios_meta: int
+    porcentaje_municipios: float
+    secciones_cubiertas: int
+    total_secciones: int
+    porcentaje_secciones: float
+    total_documentos: int
+
+
+class AttendanceMapPoint(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    latitude: Optional[Decimal]
+    longitude: Optional[Decimal]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Assignment/Access schemas
 class SimpleCommitteeOut(BaseModel):
     id: int
@@ -156,3 +299,6 @@ class SimpleCommitteeOut(BaseModel):
 class AssignmentOut(BaseModel):
     role: Optional[int] = None
     committees_owned: List[SimpleCommitteeOut] = []
+
+
+AdministrativeUnitNode.model_rebuild()
