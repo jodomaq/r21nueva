@@ -4,8 +4,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../api';
 
 export default function DocumentUploadDialog({ committee, onClose }) {
+  const [baseURL, setBaseURL] = useState('http://localhost:8000');
+
+  const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const [files, setFiles] = useState([]);
   const [docs, setDocs] = useState([]);
+
+  useEffect(() => {
+    setBaseURL(isLocalhost ? 'http://localhost:8000' : import.meta.env.VITE_API_BASE);
+  }, [isLocalhost]);
 
   const loadDocs = async () => {
     const { data } = await api.get(`/committees/${committee.id}/documents`);
@@ -42,7 +49,7 @@ export default function DocumentUploadDialog({ committee, onClose }) {
           <ImageList cols={3} gap={8}>
             {docs.map(d => (
               <ImageListItem key={d.id} sx={{ position: 'relative' }}>
-                <img src={`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/uploads/${d.filename}`} alt={d.original_name} loading="lazy" />
+                <img src={`${baseURL}/uploads/${d.filename}`} alt={d.original_name} loading="lazy" />
                 <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                   <Tooltip title="Eliminar documento">
                     <IconButton size="small" color="error" onClick={() => removeDoc(d)}>

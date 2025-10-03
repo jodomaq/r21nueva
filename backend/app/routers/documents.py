@@ -1,6 +1,7 @@
 import os
 import uuid
 import logging
+import logging.handlers
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
 from typing import List
@@ -10,7 +11,17 @@ from ..dependencies import get_current_user
 from ..config import settings
 
 router = APIRouter(prefix="/committees", tags=["documents"])
-logger = logging.getLogger("uvicorn.error")
+log_path = os.path.join(settings.upload_dir, "logs")
+os.makedirs(log_path, exist_ok=True)
+handler = logging.handlers.RotatingFileHandler(
+    os.path.join(log_path, "documents.log"), maxBytes=5_000_000, backupCount=3, encoding="utf-8"
+)
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s %(message)s")
+handler.setFormatter(formatter)
+
+logger = logging.getLogger("documents")
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 
 @router.post("/{committee_id}/documents", response_model=List[schemas.DocumentOut])
@@ -20,6 +31,8 @@ async def upload_documents(
     session: Session = Depends(get_session),
     user: models.User = Depends(get_current_user),
 ):
+    logger.exception("Inicia la subida de archivos para el comité %s", committee_id)
+    
     committee = session.get(models.Committee, committee_id)
     if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
@@ -27,25 +40,25 @@ async def upload_documents(
     saved_docs = []
     base_dir = os.path.join(settings.upload_dir, "committees", str(committee_id))
     os.makedirs(base_dir, exist_ok=True)
-    for f in files:
-        if not f.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="Solo se permiten imágenes")
-        file_ext = os.path.splitext(f.filename)[1] or ".jpg"
-        new_name = f"{uuid.uuid4().hex}{file_ext}"
-        full_path = os.path.join(base_dir, new_name)
-        content = await f.read()
-        with open(full_path, "wb") as out:
-            out.write(content)
-        doc = models.CommitteeDocument(
-            filename=os.path.relpath(full_path, settings.upload_dir),
-            original_name=f.filename,
-            content_type=f.content_type,
-            size=len(content),
-            committee_id=committee.id,
-        )
-        session.add(doc)
-        saved_docs.append(doc)
     try:
+        for f in files:
+            if not f.content_type.startswith("image/"):
+                raise HTTPException(status_code=400, detail="Solo se permiten imágenes")
+            file_ext = os.path.splitext(f.filename)[1] or ".jpg"
+            new_name = f"{uuid.uuid4().hex}{file_ext}"
+            full_path = os.path.join(base_dir, new_name)
+            content = await f.read()
+            with open(full_path, "wb") as out:
+                out.write(content)
+            doc = models.CommitteeDocument(
+                filename=os.path.relpath(full_path, settings.upload_dir),
+                original_name=f.filename,
+                content_type=f.content_type,
+                size=len(content),
+                committee_id=committee.id,
+            )
+            session.add(doc)
+            saved_docs.append(doc)
         session.commit()
     except Exception:
         logger.exception("upload_documents failed for committee %s", committee_id)
@@ -63,7 +76,7 @@ def list_documents(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.email:
+    if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     docs = session.exec(
         select(models.CommitteeDocument).where(models.CommitteeDocument.committee_id == committee_id)
