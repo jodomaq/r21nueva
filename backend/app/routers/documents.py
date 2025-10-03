@@ -1,5 +1,6 @@
 import os
 import uuid
+import logging
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
 from typing import List
@@ -9,6 +10,7 @@ from ..dependencies import get_current_user
 from ..config import settings
 
 router = APIRouter(prefix="/committees", tags=["documents"])
+logger = logging.getLogger("uvicorn.error")
 
 
 @router.post("/{committee_id}/documents", response_model=List[schemas.DocumentOut])
@@ -19,7 +21,7 @@ async def upload_documents(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.email:
+    if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
 
     saved_docs = []
@@ -43,7 +45,12 @@ async def upload_documents(
         )
         session.add(doc)
         saved_docs.append(doc)
-    session.commit()
+    try:
+        session.commit()
+    except Exception:
+        logger.exception("upload_documents failed for committee %s", committee_id)
+        session.rollback()
+        raise
     for d in saved_docs:
         session.refresh(d)
     return saved_docs

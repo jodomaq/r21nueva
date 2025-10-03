@@ -16,7 +16,7 @@ from sqlmodel import Session, select
 from .. import models, schemas
 from ..database import get_session
 
-router = APIRouter(prefix="/dashboard-api", tags=["dashboard"])
+router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 ROLE_LABELS = {
     1: "Coordinación Estatal",
