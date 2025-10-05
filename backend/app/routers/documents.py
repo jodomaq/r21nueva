@@ -2,7 +2,7 @@ import os
 import uuid
 import logging
 import logging.handlers
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlmodel import Session, select
 from typing import List
 from .. import models, schemas
@@ -27,20 +27,25 @@ logger.addHandler(handler)
 @router.post("/{committee_id}/documents", response_model=List[schemas.DocumentOut])
 async def upload_documents(
     committee_id: int,
+    request: Request,
     files: list[UploadFile] = File(...),
     session: Session = Depends(get_session),
     user: models.User = Depends(get_current_user),
 ):
-    logger.exception("Inicia la subida de archivos para el comité %s", committee_id)
-    
-    committee = session.get(models.Committee, committee_id)
-    if not committee:
-        raise HTTPException(status_code=404, detail="Comité no encontrado")
-
-    saved_docs = []
-    base_dir = os.path.join(settings.upload_dir, "committees", str(committee_id))
-    os.makedirs(base_dir, exist_ok=True)
+    logger.info("Inicia la subida de archivos para el comité %s", committee_id)
     try:
+        committee = session.get(models.Committee, committee_id)
+        if not committee:
+            raise HTTPException(status_code=404, detail="Comité no encontrado")
+        saved_docs = []
+        base_dir = os.path.join(settings.upload_dir, "committees", str(committee_id))
+        os.makedirs(base_dir, exist_ok=True)
+        logger.info(
+            "Payload crudo: content-type=%s, params=%s",
+            request.headers.get("content-type"),
+            request.query_params,
+        )
+        logger.info("Archivos anunciados: %s", [f.filename for f in files])    
         for f in files:
             if not f.content_type.startswith("image/"):
                 raise HTTPException(status_code=400, detail="Solo se permiten imágenes")
@@ -48,6 +53,7 @@ async def upload_documents(
             new_name = f"{uuid.uuid4().hex}{file_ext}"
             full_path = os.path.join(base_dir, new_name)
             content = await f.read()
+            logger.info("Archivo %s recibido (%s bytes, %s)", f.filename, len(content), f.content_type)
             with open(full_path, "wb") as out:
                 out.write(content)
             doc = models.CommitteeDocument(
@@ -75,6 +81,7 @@ def list_documents(
     session: Session = Depends(get_session),
     user: models.User = Depends(get_current_user),
 ):
+    logger.info("Inicia la lectura de archivos para el comité %s", committee_id)
     committee = session.get(models.Committee, committee_id)
     if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")

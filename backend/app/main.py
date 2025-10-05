@@ -14,7 +14,9 @@ from .routers.dashboard import router as dashboard_router
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title=settings.app_name)
+    app = FastAPI(
+        title=settings.app_name,
+        root_path="/api")
 
     app.add_middleware(
         CORSMiddleware,

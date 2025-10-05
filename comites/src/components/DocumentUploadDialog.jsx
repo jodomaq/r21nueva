@@ -24,6 +24,7 @@ export default function DocumentUploadDialog({ committee, onClose }) {
     const form = new FormData();
     files.forEach(f => form.append('files', f));
     await api.post(`/committees/${committee.id}/documents`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    console.log('Ruta: ', api.defaults.baseURL, `/committees/${committee.id}/documents`);
     setFiles([]);
     await loadDocs();
   };
@@ -49,7 +50,7 @@ export default function DocumentUploadDialog({ committee, onClose }) {
           <ImageList cols={3} gap={8}>
             {docs.map(d => (
               <ImageListItem key={d.id} sx={{ position: 'relative' }}>
-                <img src={`${baseURL}/uploads/${d.filename}`} alt={d.original_name} loading="lazy" />
+                <img src={`${baseURL}/api/uploads/${d.filename}`} alt={d.original_name} loading="lazy" />
                 <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                   <Tooltip title="Eliminar documento">
                     <IconButton size="small" color="error" onClick={() => removeDoc(d)}>

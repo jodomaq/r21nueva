@@ -56,3 +56,12 @@ Autenticación: Enviar encabezado `Authorization: Bearer <token>` retornado por 
 - Máximo 10 integrantes por comité (configurable). 
 - Solo se aceptan imágenes en la carga de documentos.
 - Para generar los reportes se utilizan `openpyxl` (Excel) y `fpdf2` (PDF); asegúrate de instalar dependencias con `pip install -r requirements.txt`.
+
+
+
+
+curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJqb2RvbWFxQGdtYWlsLmNvbSIsImV4cCI6MTc1OTYzMjUzMSwiaWF0IjoxNzU5NTg5MzMxfQ.FOTaghuzIhb1LL_9lOofgw6jghD-PgF-7Q8LI8tFBok" -F "files=@/tmp/test.jpg" https://plataformar21.mx/api/committees/3/documents
+
+curl -v https://plataformar21.mx/api/committees/3/documents -F "files=@diag.jpg" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJqb2RvbWFxQGdtYWlsLmNvbSIsImV4cCI6MTc1OTYzMjUzMSwiaWF0IjoxNzU5NTg5MzMxfQ.FOTaghuzIhb1LL_9lOofgw6jghD-PgF-7Q8LI8tFBok"
+
+Invoke-WebRequest -Method Post -Uri … -Headers @{Authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJqb2RvbWFxQGdtYWlsLmNvbSIsImV4cCI6MTc1OTYzMjUzMSwiaWF0IjoxNzU5NTg5MzMxfQ.FOTaghuzIhb1LL_9lOofgw6jghD-PgF-7Q8LI8tFBok"} -Form @{files=Get-Item 'C:\tmp\test.jpg'}
