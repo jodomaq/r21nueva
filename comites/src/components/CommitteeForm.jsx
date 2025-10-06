@@ -13,8 +13,8 @@ const schema = yup.object({
   type: yup.string().required('Requerido'),
   presidente: yup.string().required('Requerido'),
   email: yup.string().email('Email inválido').required('Requerido'),
-  clave_afiliacion: yup.string().required('Requerido'),
-  telefono: yup.string().required('Requerido')
+  clave_afiliacion: yup.string().required('Requerido').max(13, 'Máximo 13 caracteres'),
+  telefono: yup.string().trim().matches(/^\d{10}$/, 'Teléfono debe tener 10 dígitos').required('Teléfono es obligatorio')
 });
 
 export default function CommitteeForm({ onCreated }) {
@@ -89,7 +89,6 @@ export default function CommitteeForm({ onCreated }) {
 
   return (
     <Paper sx={{ p:2 }}>
-      <Typography variant="h6" gutterBottom>Nuevo Comité</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre del comité" {...register('name')} error={!!errors.name} helperText={errors.name?.message} /></Grid>

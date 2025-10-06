@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import api from '../api';
 import { useIneOcr } from '../hooks/useIneOcr';
+import * as yup from 'yup';
 
 export default function AddMember({ committeeId, onAdded, onCancel }) {
   const [form, setForm] = useState({
@@ -14,11 +15,35 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
     section_number: '',
     invited_by: ''
   });
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
   const { scanningIndex, scanDocument } = useIneOcr();
 
-  const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const validationSchema = useMemo(
+    () =>
+      yup.object({
+        full_name: yup.string().trim().required('Nombre completo es obligatorio'),
+        ine_key: yup
+          .string()
+          .trim()
+          .matches(/^[A-Za-z]{6}\d{8}[A-Za-z]\d{3}$/, 'La clave INE debe contener 6 letras, 8 números, una letra y 3 números')
+          .required('La clave de elector es obligatoria'),
+        phone: yup
+          .string()
+          .trim()
+          .matches(/^\d{10}$/, 'Teléfono debe tener 10 dígitos')
+          .required('Teléfono es obligatorio'),
+        email: yup.string().trim().email('Email no es válido').required('Email es obligatorio'),
+        section_number: yup.string().trim().required('Sección es obligatoria'),
+        invited_by: yup.string().trim().required('Invitado por es obligatorio')
+      }),
+    []
+  );
+  const setField = (k, v) => {
+    setForm(prev => ({ ...prev, [k]: v }));
+    setErrors(prev => ({ ...prev, [k]: undefined }));
+  };
   const sections = useMemo(() => Array.from({ length: 2734 }, (_, i) => String(i + 1)), []);
   const handleScanClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
@@ -38,9 +63,15 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
   };
   const submit = async (e) => {
     e.preventDefault();
-    // simple required validation
-    if (!form.full_name || !form.ine_key || !form.phone || !form.email || !form.section_number || !form.invited_by) {
-      alert('Completa todos los campos');
+    try {
+      setErrors({});
+      await validationSchema.validate(form, { abortEarly: false });
+    } catch (validationError) {
+      const fieldErrors = {};
+      validationError.inner?.forEach(({ path, message }) => {
+        if (path && !fieldErrors[path]) fieldErrors[path] = message;
+      });
+      setErrors(fieldErrors);
       return;
     }
     try {
@@ -64,10 +95,10 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
       </Stack>
       <Box component="form" onSubmit={submit}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre completo" value={form.full_name} onChange={e => setField('full_name', e.target.value)} /></Grid>
-          <Grid item xs={12} sm={6}><TextField fullWidth label="INE" value={form.ine_key} onChange={e => setField('ine_key', e.target.value)} /></Grid>
-          <Grid item xs={12} sm={4}><TextField fullWidth label="Teléfono" value={form.phone} onChange={e => setField('phone', e.target.value)} /></Grid>
-          <Grid item xs={12} sm={4}><TextField fullWidth label="Email" type="email" value={form.email} onChange={e => setField('email', e.target.value)} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre completo" value={form.full_name} onChange={e => setField('full_name', e.target.value)} error={Boolean(errors.full_name)} helperText={errors.full_name} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="INE" value={form.ine_key} onChange={e => setField('ine_key', e.target.value)} error={Boolean(errors.ine_key)} helperText={errors.ine_key} /></Grid>
+          <Grid item xs={12} sm={4}><TextField fullWidth label="Teléfono" value={form.phone} onChange={e => setField('phone', e.target.value)} error={Boolean(errors.phone)} helperText={errors.phone} /></Grid>
+          <Grid item xs={12} sm={4}><TextField fullWidth label="Email" type="email" value={form.email} onChange={e => setField('email', e.target.value)} error={Boolean(errors.email)} helperText={errors.email} /></Grid>
           <Grid item xs={12} sm={2}>
             <TextField
               select
@@ -75,6 +106,8 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
               label="Sección"
               value={form.section_number}
               onChange={e => setField('section_number', e.target.value)}
+              error={Boolean(errors.section_number)}
+              helperText={errors.section_number}
               SelectProps={{ native: true }}
             >
               <option value=""></option>
@@ -83,7 +116,7 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
               ))}
             </TextField>
           </Grid>
-          <Grid item xs={12} sm={2}><TextField fullWidth label="Invitado por" value={form.invited_by} onChange={e => setField('invited_by', e.target.value)} /></Grid>
+          <Grid item xs={12} sm={2}><TextField fullWidth label="Invitado por" value={form.invited_by} onChange={e => setField('invited_by', e.target.value)} error={Boolean(errors.invited_by)} helperText={errors.invited_by} /></Grid>
           <Grid item xs={12} sm={2}>
             <input
               type="file"
