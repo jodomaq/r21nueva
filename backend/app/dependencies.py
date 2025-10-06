@@ -26,3 +26,17 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
+
+
+def require_dashboard_user(
+    user: models.User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> models.User:
+    assignment = session.exec(
+        select(models.UserAssignment)
+        .where(models.UserAssignment.user_id == user.id)
+        .order_by(models.UserAssignment.created_at.desc())
+    ).first()
+    if assignment is None or assignment.role is None or assignment.role > 5:
+        raise HTTPException(status_code=403, detail="No cuentas con permisos para acceder al dashboard")
+    return user

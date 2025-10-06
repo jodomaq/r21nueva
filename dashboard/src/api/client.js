@@ -11,6 +11,27 @@ export const api = axios.create({
   },
 })
 
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = window.localStorage.getItem('token')
+    if (token) {
+      config.headers = config.headers ?? {}
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && typeof window !== 'undefined') {
+      window.localStorage.removeItem('token')
+    }
+    return Promise.reject(error)
+  },
+)
+
 const unwrap = (response) => response.data
 
 export const fetchAttendance = () => api.get('dashboard/attendance').then(unwrap)
@@ -21,8 +42,12 @@ export const fetchCommittees = () => api.get('dashboard/committees').then(unwrap
 export const fetchDocuments = () => api.get('dashboard/documents').then(unwrap)
 export const fetchMetrics = () => api.get('dashboard/metrics').then(unwrap)
 export const fetchAttendanceMap = () => api.get('dashboard/attendance/map').then(unwrap)
+export const googleLoginRequest = (idToken) => api.post('auth/google', { id_token: idToken }).then(unwrap)
+export const fetchCurrentUser = () => api.get('auth/me').then(unwrap)
+export const fetchMyAssignment = () => api.get('auth/me/assignment').then(unwrap)
 
-export const getExportUrls = () => ({
-  committeesExcel: `${baseURL}/exports/committees.xlsx`,
-  committeeActa: (committeeId) => `${baseURL}/committees/${committeeId}/acta.pdf`,
-})
+export const downloadCommitteesExcel = () =>
+  api.get('dashboard/exports/committees.xlsx', { responseType: 'blob' })
+
+export const downloadCommitteeActa = (committeeId) =>
+  api.get(`dashboard/committees/${committeeId}/acta.pdf`, { responseType: 'blob' })

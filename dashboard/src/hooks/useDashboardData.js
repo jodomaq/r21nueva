@@ -23,17 +23,17 @@ const sanitizePresidents = (committees = []) =>
       section: committee.section_number,
     }))
 
-export const useDashboardData = () => {
+export const useDashboardData = (enabled = true) => {
   const queryResults = useQueries({
     queries: [
-      { queryKey: ['attendance'], queryFn: fetchAttendance, staleTime: 1000 * 60 },
-      { queryKey: ['committee-stats'], queryFn: fetchCommitteeStats, staleTime: 1000 * 120 },
-      { queryKey: ['administrative-tree'], queryFn: fetchAdministrativeTree, staleTime: 1000 * 300 },
-      { queryKey: ['assignments'], queryFn: fetchUserAssignments, staleTime: 1000 * 180 },
-      { queryKey: ['committees'], queryFn: fetchCommittees, staleTime: 1000 * 90 },
-      { queryKey: ['documents'], queryFn: fetchDocuments, staleTime: 1000 * 90 },
-      { queryKey: ['metrics'], queryFn: fetchMetrics, staleTime: 1000 * 60 },
-      { queryKey: ['attendance-map'], queryFn: fetchAttendanceMap, staleTime: 1000 * 60 },
+      { queryKey: ['attendance'], queryFn: fetchAttendance, staleTime: 1000 * 60, enabled },
+      { queryKey: ['committee-stats'], queryFn: fetchCommitteeStats, staleTime: 1000 * 120, enabled },
+      { queryKey: ['administrative-tree'], queryFn: fetchAdministrativeTree, staleTime: 1000 * 300, enabled },
+      { queryKey: ['assignments'], queryFn: fetchUserAssignments, staleTime: 1000 * 180, enabled },
+      { queryKey: ['committees'], queryFn: fetchCommittees, staleTime: 1000 * 90, enabled },
+      { queryKey: ['documents'], queryFn: fetchDocuments, staleTime: 1000 * 90, enabled },
+      { queryKey: ['metrics'], queryFn: fetchMetrics, staleTime: 1000 * 60, enabled },
+      { queryKey: ['attendance-map'], queryFn: fetchAttendanceMap, staleTime: 1000 * 60, enabled },
     ],
   })
 
