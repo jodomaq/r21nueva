@@ -143,7 +143,7 @@ def delete_member(
     user: models.User = Depends(get_current_user),
 ):
     committee = session.get(models.Committee, committee_id)
-    if not committee or committee.owner_id != user.email:
+    if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     # Only role 6 can remove members in their own committee
     ua = session.exec(
