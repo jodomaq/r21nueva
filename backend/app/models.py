@@ -1,7 +1,14 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
+
+# Zona horaria de Ciudad de México (UTC-6)
+MEXICO_CITY_TZ = timezone(timedelta(hours=-6))
+
+def get_mexico_city_time():
+    """Retorna la hora actual en zona horaria de Ciudad de México (UTC-6)"""
+    return datetime.now(MEXICO_CITY_TZ)
 
 
 # ...existing code...
@@ -10,7 +17,7 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     name: str
     picture_url: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_mexico_city_time)
 
     committees: List["Committee"] = Relationship(back_populates="owner")
     # NUEVO: asignaciones jerárquicas
@@ -29,7 +36,7 @@ class AdministrativeUnit(SQLModel, table=True):
     code: Optional[str] = Field(default=None, index=True, description="Clave o número oficial (ej: sección)")
     unit_type: str = Field(index=True)  # 'STATE','REGION','DISTRICT','MUNICIPALITY','SECTION'
     parent_id: Optional[int] = Field(default=None, foreign_key="administrativeunit.id", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
 
     parent: Optional["AdministrativeUnit"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "AdministrativeUnit.id"})
     children: List["AdministrativeUnit"] = Relationship(back_populates="parent")
@@ -55,7 +62,7 @@ class UserAssignment(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     administrative_unit_id: int = Field(foreign_key="administrativeunit.id", index=True)
     role: int = Field(index=True) # 1=COORDINADOR_ESTATAL, 2=DELEGADO_REGIONAL, 3=COORDINADOR_DISTRITAL, 4=COORDINADOR_MUNICIPAL, 5=COORDINADOR_SECCIONAL, 6=PRESIDENTE_COMITE
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
+    created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
 
     user: Optional[User] = Relationship(back_populates="assignments")
     administrative_unit: Optional[AdministrativeUnit] = Relationship(back_populates="user_assignments")
@@ -69,7 +76,7 @@ class Committee(SQLModel, table=True):
     # Store the human-readable type name for now; validated against CommitteeType table
     type: str = Field(index=True, description="Committee type name, validated against CommitteeType table")  # 'seccional' | 'especial'
     owner_id: str = Field(foreign_key="user.email", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
     presidente: str = Field(default="", description="Nombre del presidente del comité")
     email: str = Field(default="", description="Correo electrónico del presidente del comité")
     clave_afiliacion: str = Field(default="", description="Clave de afiliación del presidente del comité")
@@ -94,7 +101,7 @@ class CommitteeMember(SQLModel, table=True):
     section_number: str
     invited_by: str
     committee_id: int = Field(foreign_key="committee.id", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_mexico_city_time)
 
     committee: Optional[Committee] = Relationship(back_populates="members")
 
@@ -106,7 +113,7 @@ class CommitteeDocument(SQLModel, table=True):
     content_type: str
     size: int
     committee_id: int = Field(foreign_key="committee.id", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_mexico_city_time)
 
     committee: Optional[Committee] = Relationship(back_populates="documents")
 
@@ -115,7 +122,7 @@ class CommitteeType(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True, unique=True, description="Display name for the committee type")
     is_active: bool = Field(default=True, index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
 
 
 class Attendance(SQLModel, table=True):
@@ -131,7 +138,7 @@ class Attendance(SQLModel, table=True):
     longitude: Optional[Decimal] = Field(default=None, max_digits=9, decimal_places=6)
     accuracy: Optional[int] = Field(default=None)
     timezone: str = Field(max_length=64, default="")
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
 
 class Seccion(SQLModel, table=True):
     """
