@@ -16,6 +16,7 @@ export default function MemberList({ committeeId, onBack, onAddMember, readonly 
     try {
       setLoading(true);
       const { data } = await api.get(`/committees/${committeeId}`);
+      console.log('Committee data:', data);
       setCommittee(data);
       setError(null);
     } catch (e) {

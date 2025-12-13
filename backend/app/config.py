@@ -25,6 +25,9 @@ class Settings(BaseModel):
     jwt_secret: str = os.getenv("JWT_SECRET", "change-me")
     jwt_algorithm: str = "HS256"
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    microsoft_client_id: str = os.getenv("MICROSOFT_CLIENT_ID", "")
+    microsoft_client_secret: str = os.getenv("MICROSOFT_CLIENT_SECRET", "")
+    microsoft_tenant_id: str = os.getenv("MICROSOFT_TENANT_ID", "common")
     frontend_origin: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
     max_members_per_committee: int = 10
     upload_dir: str = os.getenv("UPLOAD_DIR", "uploads")

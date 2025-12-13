@@ -27,7 +27,8 @@ export default function App() {
     }
   }, [role, ownedCommitteeId]);
 
-  const canManageMembers = role === 6 && !!ownedCommitteeId;
+  //const canManageMembers = role === 6 && !!ownedCommitteeId;
+  const canManageMembers = true; // all roles can manage members
   const canCreateCommittees = role !== 6; // others can capture committees but not members
   return (
     <Layout onNavigate={(next) => {
@@ -52,7 +53,7 @@ export default function App() {
           onOpenMembers={(committee) => {
             if (canManageMembers) {
               // only open if it's their own committee
-              const committeeId = ownedCommitteeId;
+              const committeeId = committee.id;
               if (committeeId && committee.id === committeeId) {
                 setSelectedCommitteeId(committeeId);
                 setView('members');

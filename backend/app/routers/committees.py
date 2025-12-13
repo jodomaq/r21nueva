@@ -93,7 +93,9 @@ def list_committees(
 @router.get("/{committee_id}", response_model=schemas.CommitteeOut)
 def get_committee(committee_id: int, session: Session = Depends(get_session), user: models.User = Depends(get_current_user)):
     committee = session.get(models.Committee, committee_id)
-    if not committee or (committee.owner_id != user.email and committee.email != user.email):
+    if not committee:
+        raise HTTPException(status_code=404, detail="Comité no encontrado")
+    if committee.owner_id != user.email and committee.email != user.email:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
     return committee
 
