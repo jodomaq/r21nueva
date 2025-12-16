@@ -46,8 +46,11 @@ def google_login(data: GoogleAuthIn, session: Session = Depends(get_session)):
     #if not email or not email.endswith("@gmail.com"):
     #    raise HTTPException(status_code=400, detail="Debe iniciar sesión con una cuenta que termine con gmail")
 
-    registrado = session.exec(select(models.Committee).where(models.Committee.email == email)).first()
-    if not registrado:
+    # Verificar si el usuario existe en Committee o en User
+    registrado_committee = session.exec(select(models.Committee).where(models.Committee.email == email)).first()
+    registrado_user = session.exec(select(models.User).where(models.User.email == email)).first()
+    
+    if not registrado_committee and not registrado_user:
         raise HTTPException(status_code=403, detail="Usuario no registrado. Contacta a tu coordinador.")
 
     name = idinfo.get("name") or email.split("@")[0]
@@ -63,7 +66,6 @@ def google_login(data: GoogleAuthIn, session: Session = Depends(get_session)):
     user_assignment = session.exec(
         select(models.UserAssignment).where(
             models.UserAssignment.user_id == user.id,
-            models.UserAssignment.administrative_unit_id == 1,
         )
     ).first()
     if not user_assignment:
@@ -105,9 +107,11 @@ def microsoft_login(data: MicrosoftAuthIn, session: Session = Depends(get_sessio
         if not email:
             raise HTTPException(status_code=400, detail="No se pudo obtener el email del usuario")
         
-        # Verificar si el usuario está registrado en un comité
-        registrado = session.exec(select(models.Committee).where(models.Committee.email == email)).first()
-        if not registrado:
+        # Verificar si el usuario existe en Committee o en User
+        registrado_committee = session.exec(select(models.Committee).where(models.Committee.email == email)).first()
+        registrado_user = session.exec(select(models.User).where(models.User.email == email)).first()
+        
+        if not registrado_committee and not registrado_user:
             raise HTTPException(status_code=403, detail="Usuario no registrado. Contacta a tu coordinador.")
         
         # Obtener nombre y crear/actualizar usuario
@@ -124,7 +128,6 @@ def microsoft_login(data: MicrosoftAuthIn, session: Session = Depends(get_sessio
         user_assignment = session.exec(
             select(models.UserAssignment).where(
                 models.UserAssignment.user_id == user.id,
-                models.UserAssignment.administrative_unit_id == 1,
             )
         ).first()
         

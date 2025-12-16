@@ -4,6 +4,7 @@ import CommitteeForm from './components/CommitteeForm';
 import CommitteeList from './components/CommitteeList';
 import MemberList from './components/MemberList';
 import AddMember from './components/AddMember';
+import AdminDashboard from './components/AdminDashboard';
 import { useAuth } from './AuthContext';
 
 export default function App() {
@@ -62,6 +63,7 @@ export default function App() {
           }}
         />
       )}
+      {view === 'admin' && <AdminDashboard />}
       {view === 'members' && selectedCommitteeId != null && canManageMembers && (
         <MemberList
           committeeId={selectedCommitteeId}

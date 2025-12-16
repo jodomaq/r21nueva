@@ -47,6 +47,7 @@ function InternalAuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [assignment, setAssignment] = useState({ role: null, committees_owned: [] });
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleGoogleSuccess = async credentialResponse => {
     try {
@@ -55,6 +56,7 @@ function InternalAuthProvider({ children }) {
       const { data } = await api.post('/auth/google', { id_token });
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
+      setIsAdmin(data.user.email === 'jodomaq@gmail.com');
       console.log('User after login', data.user);
       // Fetch assignment after login
       try {
@@ -92,6 +94,7 @@ function InternalAuthProvider({ children }) {
       const { data } = await api.post('/auth/microsoft', { access_token: accessToken });
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
+      setIsAdmin(data.user.email === 'jodomaq@gmail.com');
       console.log('User after Microsoft login', data.user);
       
       // Fetch assignment after login
@@ -116,6 +119,7 @@ function InternalAuthProvider({ children }) {
     googleLogout();
     setUser(null);
     setAssignment({ role: null, committees_owned: [] });
+    setIsAdmin(false);
   };
 
   // Try bootstrap from existing token
@@ -126,6 +130,7 @@ function InternalAuthProvider({ children }) {
       try {
         const me = await api.get('/auth/me');
         setUser(me.data);
+        setIsAdmin(me.data.email === 'jodomaq@gmail.com');
         // There is no backend endpoint for /auth/me user profile yet; we can infer user by calling /committees (which requires auth) or skip.
         // Minimal: fetch assignment to decide UI
         const a = await api.get('/auth/me/assignment');
@@ -139,7 +144,7 @@ function InternalAuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, assignment, setAssignment, handleGoogleSuccess, handleMicrosoftLogin, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, assignment, setAssignment, handleGoogleSuccess, handleMicrosoftLogin, logout, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

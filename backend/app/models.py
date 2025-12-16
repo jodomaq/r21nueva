@@ -16,6 +16,7 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     name: str
+    phone: Optional[str] = Field(default=None, max_length=20, description="Número de teléfono celular")
     picture_url: Optional[str] = None
     created_at: datetime = Field(default_factory=get_mexico_city_time)
 
@@ -37,6 +38,10 @@ class AdministrativeUnit(SQLModel, table=True):
     unit_type: str = Field(index=True)  # 'STATE','REGION','DISTRICT','MUNICIPALITY','SECTION'
     parent_id: Optional[int] = Field(default=None, foreign_key="administrativeunit.id", index=True)
     created_at: datetime = Field(default_factory=get_mexico_city_time, index=True)
+    
+    # Referencia a la tabla Seccion para sincronización
+    seccion_municipio_id: Optional[int] = Field(default=None, index=True, description="ID del municipio en tabla Seccion")
+    seccion_distrito_id: Optional[int] = Field(default=None, index=True, description="ID del distrito en tabla Seccion")
 
     parent: Optional["AdministrativeUnit"] = Relationship(back_populates="children", sa_relationship_kwargs={"remote_side": "AdministrativeUnit.id"})
     children: List["AdministrativeUnit"] = Relationship(back_populates="parent")
