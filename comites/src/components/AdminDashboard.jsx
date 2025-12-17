@@ -55,7 +55,8 @@ const UNIT_TYPE_NAMES = {
   'REGION': 'Región',
   'DISTRICT': 'Distrito',
   'MUNICIPALITY': 'Municipio',
-  'SECTION': 'Sección'
+  'SECTION': 'Sección',
+  'Region':'Administrador',
 };
 
 export default function AdminDashboard() {

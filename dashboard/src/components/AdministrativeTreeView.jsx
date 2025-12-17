@@ -7,12 +7,20 @@ const ROLE_SHORT = {
   6: 'Presidencia Comité',
 }
 
+const UNIT_TRANSLATIONS = {
+  STATE: 'Estado',
+  REGION: 'Región',
+  DISTRICT: 'Distrito',
+  MUNICIPALITY: 'Municipio',
+  SECTION: 'Sección',
+}
+
 const Node = ({ node }) => (
   <li className="tree-node">
     <div className="tree-node__label">
       <div>
         <strong>{node.name}</strong>
-        <div className="tag">{node.unit_type}</div>
+        <div className="tag">{UNIT_TRANSLATIONS[node.unit_type] || node.unit_type}</div>
       </div>
       {node.assignments?.length ? (
         <div className="tree-node__assignments">

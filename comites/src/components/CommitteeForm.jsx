@@ -13,7 +13,6 @@ const schema = yup.object({
   type: yup.string().required('Requerido'),
   presidente: yup.string().required('Requerido'),
   email: yup.string().email('Email inválido').required('Requerido'),
-  clave_afiliacion: yup.string().required('Requerido').max(13, 'Máximo 13 caracteres'),
   telefono: yup.string().trim().matches(/^\d{10}$/, 'Teléfono debe tener 10 dígitos').required('Teléfono es obligatorio')
 });
 

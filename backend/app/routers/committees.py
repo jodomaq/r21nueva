@@ -23,7 +23,7 @@ def create_committee(
         .where(models.UserAssignment.user_id == user.id)
         .order_by(models.UserAssignment.created_at.desc())
     ).first()
-    if ua and ua.role == 6:
+    if ua:
         raise HTTPException(status_code=403, detail="Tu rol no permite crear comités")
     # Non-6 cannot capture members
     if (not ua or ua.role != 6) and len(data.members or []) > 0:
@@ -116,7 +116,7 @@ def add_member(
         .where(models.UserAssignment.user_id == user.id)
         .order_by(models.UserAssignment.created_at.desc())
     ).first()
-    if not (ua and ua.role == 6):
+    if not (ua):
         raise HTTPException(status_code=403, detail="Tu rol no permite agregar integrantes")
     session.refresh(committee)
     current_count = len(committee.members)
@@ -153,7 +153,7 @@ def delete_member(
         .where(models.UserAssignment.user_id == user.id)
         .order_by(models.UserAssignment.created_at.desc())
     ).first()
-    if not (ua and ua.role == 6):
+    if not (ua):
         raise HTTPException(status_code=403, detail="Tu rol no permite eliminar integrantes")
     member = session.get(models.CommitteeMember, member_id)
     if not member or member.committee_id != committee.id:

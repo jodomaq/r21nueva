@@ -58,6 +58,11 @@ def create_app() -> FastAPI:
                         "Seccionales",
                         "Municipales",
                         "Deportistas",
+                        "Territoriales",
+                        "Distritales",
+                        "Especiales",
+                        "Sectoriales",
+                        "Otros",
                     ]
                     for name in defaults:
                         session.add(models.CommitteeType(name=name, is_active=True))

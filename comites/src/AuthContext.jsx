@@ -95,6 +95,10 @@ function InternalAuthProvider({ children }) {
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
       setIsAdmin(data.user.email === 'jodomaq@gmail.com');
+      setIsAdmin(data.user.email === 'Karinarojas2597@gmail.com')
+      setIsAdmin(data.user.email === 'raul_moron_orozco@hotmail.com');
+      setIsAdmin(data.user.email === 'Karinarojas2597@gmail.com')
+
       console.log('User after Microsoft login', data.user);
       
       // Fetch assignment after login

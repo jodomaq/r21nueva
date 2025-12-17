@@ -40,7 +40,7 @@ function InternalAuthProvider({ children }) {
   const [authenticating, setAuthenticating] = useState(false)
   const [error, setError] = useState('')
 
-  const hasDashboardAccess = assignment?.role != null && assignment.role <= 5
+  const hasDashboardAccess = assignment?.role != null && assignment.role === 1
 
   const resetSession = useCallback(() => {
     if (typeof window !== 'undefined') {
