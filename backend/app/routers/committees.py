@@ -23,7 +23,7 @@ def create_committee(
         .where(models.UserAssignment.user_id == user.id)
         .order_by(models.UserAssignment.created_at.desc())
     ).first()
-    if ua:
+    if not (ua):
         raise HTTPException(status_code=403, detail="Tu rol no permite crear comités")
     # Non-6 cannot capture members
     if (not ua or ua.role != 6) and len(data.members or []) > 0:
@@ -77,7 +77,7 @@ def create_committee(
 def list_committees(
     session: Session = Depends(get_session), user: models.User = Depends(get_current_user)
 ):
-    committees = session.exec(
+    committees_db = session.exec(
         select(models.Committee)
         .where(
             or_(
@@ -87,7 +87,12 @@ def list_committees(
         )
         .order_by(models.Committee.created_at.desc())
     ).all()
-    return committees
+    committees_out = []
+    for committee in committees_db:
+        committee_out = schemas.CommitteeOut.model_validate(committee)
+        committee_out.has_document = len(committee.documents) > 0
+        committees_out.append(committee_out)
+    return committees_out
 
 
 @router.get("/{committee_id}", response_model=schemas.CommitteeOut)
@@ -95,9 +100,9 @@ def get_committee(committee_id: int, session: Session = Depends(get_session), us
     committee = session.get(models.Committee, committee_id)
     if not committee:
         raise HTTPException(status_code=404, detail="Comité no encontrado")
-    if committee.owner_id != user.email and committee.email != user.email:
-        raise HTTPException(status_code=404, detail="Comité no encontrado")
-    return committee
+    committee_out = schemas.CommitteeOut.model_validate(committee)
+    committee_out.has_document = len(committee.documents) > 0
+    return committee_out
 
 
 @router.post("/{committee_id}/members", response_model=schemas.CommitteeOut)

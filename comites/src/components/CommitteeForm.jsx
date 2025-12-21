@@ -117,7 +117,7 @@ export default function CommitteeForm({ onCreated }) {
           </Grid>
           <Grid item xs={12} sm={6}><TextField fullWidth label="Nombre del presidente" {...register('presidente')} error={!!errors.presidente} helperText={errors.presidente?.message} /></Grid>
           <Grid item xs={12} sm={6}><TextField fullWidth label="Email del presidente" type="email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} /></Grid>
-          <Grid item xs={12} sm={6}><TextField fullWidth label="Clave de afiliación" {...register('clave_afiliacion')} error={!!errors.clave_afiliacion} helperText={errors.clave_afiliacion?.message} /></Grid>
+          <Grid item xs={12} sm={6}><TextField fullWidth label="INE" {...register('clave_afiliacion')} error={!!errors.clave_afiliacion} helperText={errors.clave_afiliacion?.message} /></Grid>
           <Grid item xs={12} sm={6}><TextField fullWidth label="Teléfono" {...register('telefono')} error={!!errors.telefono} helperText={errors.telefono?.message} /></Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained">Guardar Comité</Button>

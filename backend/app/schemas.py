@@ -69,6 +69,7 @@ class CommitteeOut(CommitteeBase):
     created_at: datetime
     owner_id: str
     members: List[CommitteeMemberOut] = []
+    has_document: bool = False
 
     class Config:
         from_attributes = True

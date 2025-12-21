@@ -47,9 +47,16 @@ async def upload_documents(
         )
         logger.info("Archivos anunciados: %s", [f.filename for f in files])    
         for f in files:
-            if not f.content_type.startswith("image/"):
-                raise HTTPException(status_code=400, detail="Solo se permiten imágenes")
-            file_ext = os.path.splitext(f.filename)[1] or ".jpg"
+            if not (f.content_type.startswith("image/") or f.content_type == "application/pdf"):
+                raise HTTPException(status_code=400, detail="Solo se permiten imágenes y archivos PDF")
+            
+            file_ext = os.path.splitext(f.filename)[1].lower()
+            if not file_ext:
+                if f.content_type.startswith("image/"):
+                    file_ext = ".jpg"
+                elif f.content_type == "application/pdf":
+                    file_ext = ".pdf"
+
             new_name = f"{uuid.uuid4().hex}{file_ext}"
             full_path = os.path.join(base_dir, new_name)
             content = await f.read()

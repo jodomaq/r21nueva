@@ -181,8 +181,8 @@ export function LoginScreen() {
   const { handleGoogleSuccess, handleMicrosoftLogin, loading } = useAuth();
   return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:24, backgroundColor:'#8b1e3f'}}>
-    <h2 style={{color:'white'}}>Comités territoriales</h2>
-    <img src={logo} alt="Logo R21" style={{ height: 80 }} />
+      <h2 style={{color:'white'}}>Comités territoriales</h2>
+      <a href="https://plataformar21.mx"><img src={logo} alt="Logo R21" style={{ height: 80 }} /></a>
       <div style={{backgroundColor:'rgba(255, 255, 255)', padding: 16, borderRadius: 8}} >
         <p>Inicia sesión con tu cuenta</p>
         

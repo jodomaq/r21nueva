@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Grid, IconButton, Box, Tooltip, Button, 
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import api from '../api';
 import DocumentUploadDialog from './DocumentUploadDialog';
 import CommitteeForm from './CommitteeForm';
@@ -11,6 +12,8 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
   const [openNew, setOpenNew] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [committeeForDoc, setCommitteeForDoc] = useState(null);
 
   const load = async () => {
     const { data } = await api.get('/committees');
@@ -25,6 +28,19 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
       await load();
     } catch (e) {
       alert(e.response?.data?.detail || 'No se pudo eliminar el comité');
+    }
+  };
+
+  const handleCardClick = (committee) => {
+    if (!canOpenMembers) return;
+
+    if (committee.has_document) {
+      if (onOpenMembers) {
+        onOpenMembers(committee);
+      }
+    } else {
+      setCommitteeForDoc(committee);
+      setDialogOpen(true);
     }
   };
 
@@ -50,13 +66,20 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
           <Grid item xs={12} sm={6} md={4} key={c.id}>
             <Card>
               <CardContent
-                onClick={() => canOpenMembers && onOpenMembers && onOpenMembers(c)}
+                onClick={() => handleCardClick(c)}
                 sx={{ cursor: canOpenMembers ? 'pointer' : 'default' }}
               >
                 <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{c.name}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{c.name}</Typography>
+                    {!c.has_document && (
+                      <Tooltip title="Debe adjuntar el acta de comité">
+                        <WarningAmberIcon color="warning" />
+                      </Tooltip>
+                    )}
+                  </Box>
                   <Box onClick={(e) => e.stopPropagation()}>
-                    <Tooltip title="Adjuntar documentos">
+                    <Tooltip title="Adjuntar acta de comité">
                       <IconButton size="small" onClick={() => setSelected(c)} sx={{ mr: 1 }}>
                         <AttachFileIcon />
                       </IconButton>
@@ -70,6 +93,9 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
                     )}
                   </Box>
                 </Box>
+                {!c.has_document && 
+                  <Typography variant="body2" color="error">Debe adjuntar acta de comité</Typography>
+                }
                 <Typography variant="body2">Sección: {c.section_number}</Typography>
                 <Typography variant="body2">Tipo: {c.type}</Typography>
                 <Typography variant="body2">Presidente: {c.presidente || '—'}</Typography>
@@ -90,6 +116,20 @@ export default function CommitteeList({ onOpenMembers, canCreate = true, canOpen
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenNew(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Acta de Comité Requerida</DialogTitle>
+        <DialogContent>
+          <Typography>Debe adjuntar el acta de comité antes de añadir miembros.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={() => {
+            setDialogOpen(false);
+            setSelected(committeeForDoc);
+            setCommitteeForDoc(null);
+          }}>Adjuntar Acta</Button>
         </DialogActions>
       </Dialog>
     </Box>
