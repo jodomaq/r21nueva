@@ -23,6 +23,22 @@ router = APIRouter(
     dependencies=[Depends(require_dashboard_user)],
 )
 
+def traductor(tipo_unidad):
+    if tipo_unidad == "STATE":
+        return "Estatal"
+    elif tipo_unidad == "Region":
+        return "Administrativo"
+    elif tipo_unidad == "DISTRICT":
+        return "Distrital"
+    elif tipo_unidad == "MUNICIPALITY":
+        return "Municipal"
+    elif tipo_unidad == "SECTION":
+        return "Seccional"
+    elif tipo_unidad == "COMMITTEE":
+        return "Comité"
+    else:
+        return "Desconocido"
+
 ROLE_LABELS = {
     1: "Coordinación Estatal",
     2: "Delegación Regional",
@@ -318,10 +334,64 @@ def committee_stats(session: Session = Depends(get_session)) -> schemas.Committe
 
 
 @router.get("/administrative-tree", response_model=List[schemas.AdministrativeUnitNode])
-def administrative_tree(session: Session = Depends(get_session)) -> List[schemas.AdministrativeUnitNode]:
+def administrative_tree(
+    prune_empty: bool = True, 
+    session: Session = Depends(get_session)
+) -> List[schemas.AdministrativeUnitNode]:
     units = session.exec(select(models.AdministrativeUnit)).all()
     if not units:
         return []
+
+    # Get stats per administrative unit (Committees and Members)
+    stats_stmt = (
+        select(
+            models.Committee.administrative_unit_id,
+            func.count(distinct(models.Committee.id)).label("committee_count"),
+            func.count(models.CommitteeMember.id).label("member_count"),
+        )
+        .select_from(models.Committee)
+        .outerjoin(models.CommitteeMember, models.CommitteeMember.committee_id == models.Committee.id)
+        .where(models.Committee.administrative_unit_id.is_not(None))
+        .group_by(models.Committee.administrative_unit_id)
+    )
+    stats_rows = session.exec(stats_stmt).all()
+    stats_map = {
+        row.administrative_unit_id: (row.committee_count, row.member_count)
+        for row in stats_rows
+        if row.administrative_unit_id is not None
+    }
+
+    # FALLBACK: Aggregation by section_number for committees not yet linked to AdministrativeUnit
+    # 1. Get mapping of code -> unit_id for SECTION units
+    section_units = session.exec(
+        select(models.AdministrativeUnit.code, models.AdministrativeUnit.id)
+        .where(models.AdministrativeUnit.unit_type == "SECTION")
+    ).all()
+    section_code_map = {row.code: row.id for row in section_units if row.code}
+
+    # 2. Count by section_number where administrative_unit_id is NULL
+    fallback_stmt = (
+        select(
+            models.Committee.section_number,
+            func.count(distinct(models.Committee.id)).label("committee_count"),
+            func.count(models.CommitteeMember.id).label("member_count"),
+        )
+        .select_from(models.Committee)
+        .outerjoin(models.CommitteeMember, models.CommitteeMember.committee_id == models.Committee.id)
+        .where(models.Committee.administrative_unit_id.is_(None))
+        .where(models.Committee.section_number.is_not(None))
+        .where(models.Committee.section_number != "")
+        .group_by(models.Committee.section_number)
+    )
+    fallback_rows = session.exec(fallback_stmt).all()
+
+    # 3. Merge into stats_map
+    for row in fallback_rows:
+        # standardizing str just in case
+        u_id = section_code_map.get(str(row.section_number))
+        if u_id:
+            c_curr, m_curr = stats_map.get(u_id, (0, 0))
+            stats_map[u_id] = (c_curr + row.committee_count, m_curr + row.member_count)
 
     assignments = session.exec(
         select(models.UserAssignment)
@@ -355,19 +425,51 @@ def administrative_tree(session: Session = Depends(get_session)) -> List[schemas
     for unit in units:
         children_map[unit.parent_id].append(unit)
 
-    def build_node(unit: models.AdministrativeUnit) -> schemas.AdministrativeUnitNode:
-        children = [build_node(child) for child in sorted(children_map.get(unit.id, []), key=lambda u: u.name.lower())]
+    def build_node(unit: models.AdministrativeUnit) -> Optional[schemas.AdministrativeUnitNode]:
+        # Recursive build
+        children_nodes = []
+        child_units = sorted(children_map.get(unit.id, []), key=lambda u: u.name.lower())
+        
+        cumulative_committees = 0
+        cumulative_members = 0
+
+        for child_unit in child_units:
+            child_node = build_node(child_unit)
+            if child_node:
+                children_nodes.append(child_node)
+                cumulative_committees += child_node.total_committees
+                cumulative_members += child_node.total_members
+
+        # Direct stats
+        direct_committees, direct_members = stats_map.get(unit.id, (0, 0))
+        
+        total_committees = cumulative_committees + direct_committees
+        total_members = cumulative_members + direct_members
+
+        # Pruning: Only return node if it has stats or meaningful content
+        # IF prune_empty is True, we check totals.
+        if prune_empty and total_committees == 0 and total_members == 0:
+            return None
+
         return schemas.AdministrativeUnitNode(
             id=unit.id,
             name=unit.name,
             code=unit.code,
             unit_type=unit.unit_type,
             assignments=assignments_by_unit.get(unit.id, []),
-            children=children,
+            children=children_nodes,
+            total_committees=total_committees,
+            total_members=total_members,
         )
 
     roots = sorted(children_map.get(None, []), key=lambda u: u.name.lower())
-    return [build_node(root) for root in roots]
+    final_nodes = []
+    for root in roots:
+        node = build_node(root)
+        if node:
+            final_nodes.append(node)
+            
+    return final_nodes
 
 
 @router.get("/user-assignments", response_model=List[schemas.UserAssignmentRow])
@@ -405,7 +507,7 @@ def list_user_assignments(session: Session = Depends(get_session)) -> List[schem
                 role_label=_role_label(assignment.role),
                 administrative_unit_id=unit.id,
                 administrative_unit_name=unit.name,
-                administrative_unit_type=unit.unit_type,
+                administrative_unit_type=traductor(unit.unit_type),
                 created_at=assignment.created_at,
             )
         )

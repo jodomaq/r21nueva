@@ -66,6 +66,7 @@ function DashboardContent() {
     attendance,
     stats,
     administrativeTree,
+    fullAdministrativeTree,
     assignments,
     committees,
     documents,
@@ -158,11 +159,11 @@ function DashboardContent() {
       <section className="sections-grid">
         <div className="card-section">
           <h2>Estructura territorial R21</h2>
-          <AdministrativeTreeView nodes={administrativeTree} />
+          <AdministrativeTreeView nodes={fullAdministrativeTree} />
         </div>
         <div className="card-section">
-          <h2>Coordinaciones y roles</h2>
-          <UserAssignmentsTable assignments={assignments} />
+          <h2>Totales por unidad</h2>
+          <UserAssignmentsTable nodes={administrativeTree} />
         </div>
       </section>
 
@@ -173,7 +174,7 @@ function DashboardContent() {
 
       <section className="sections-grid">
         <div className="card-section">
-          <h2>Galería de documentos</h2>
+          <h2>Actas de comités</h2>
           <DocumentsGallery documents={documents} />
         </div>
         <div className="card-section">

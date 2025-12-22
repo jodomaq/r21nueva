@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const ROLE_SHORT = {
   1: 'Coord. Estatal',
   2: 'Delegación Regional',
@@ -15,32 +17,62 @@ const UNIT_TRANSLATIONS = {
   SECTION: 'Sección',
 }
 
-const Node = ({ node }) => (
-  <li className="tree-node">
-    <div className="tree-node__label">
-      <div>
-        <strong>{node.name}</strong>
-        <div className="tag">{UNIT_TRANSLATIONS[node.unit_type] || node.unit_type}</div>
-      </div>
-      {node.assignments?.length ? (
-        <div className="tree-node__assignments">
-          {node.assignments.map((assignment) => (
-            <span key={`${node.id}-${assignment.user_id}`}>
-              {assignment.user_name} · {ROLE_SHORT[assignment.role] || assignment.role_label}
+const Node = ({ node }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const hasChildren = node.children && node.children.length > 0
+
+  return (
+    <li className="tree-node">
+      <div className="tree-node__label">
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          {hasChildren && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsExpanded(!isExpanded)
+              }}
+              style={{
+                cursor: 'pointer',
+                marginRight: '8px',
+                userSelect: 'none',
+                lineHeight: '1.5',
+                fontSize: '14px',
+                display: 'inline-block',
+                width: '12px',
+                textAlign: 'center',
+              }}
+            >
+              {isExpanded ? '−' : '+'}
             </span>
-          ))}
+          )}
+          <div>
+            <strong>{node.name}</strong>
+            <div className="tag">
+              {UNIT_TRANSLATIONS[node.unit_type] || node.unit_type}
+            </div>
+          </div>
         </div>
+        {node.assignments?.length ? (
+          <div className="tree-node__assignments">
+            {node.assignments.map((assignment) => (
+              <span key={`${node.id}-${assignment.user_id}`}>
+                {assignment.user_name} ·{' '}
+                {ROLE_SHORT[assignment.role] || assignment.role_label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {hasChildren && isExpanded ? (
+        <ul>
+          {node.children.map((child) => (
+            <Node key={child.id} node={child} />
+          ))}
+        </ul>
       ) : null}
-    </div>
-    {node.children?.length ? (
-      <ul>
-        {node.children.map((child) => (
-          <Node key={child.id} node={child} />
-        ))}
-      </ul>
-    ) : null}
-  </li>
-)
+    </li>
+  )
+}
 
 export default function AdministrativeTreeView({ nodes }) {
   if (!nodes.length) {

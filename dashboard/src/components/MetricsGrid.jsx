@@ -17,7 +17,7 @@ export default function MetricsGrid({ metrics }) {
   return (
     <div className="metrics-grid">
       <div className="metric-card">
-        <span>Comités organizados</span>
+        <span>Comités capturados</span>
         <strong>{formatNumber(metrics.total_committees)}</strong>
         <span>Promovidos registrados: {formatNumber(metrics.total_promovidos)}</span>
       </div>
@@ -32,9 +32,9 @@ export default function MetricsGrid({ metrics }) {
         <span>{sectionsProgress} secciones</span>
       </div>
       <div className="metric-card">
-        <span>Documentos cargados para respaldo</span>
+        <span>Actas cargadas</span>
         <strong>{formatNumber(metrics.total_documentos)}</strong>
-        <span>Memoria viva de cada reunión territorial</span>
+        <span>Registro de actas firmadas de comités</span>
       </div>
     </div>
   )

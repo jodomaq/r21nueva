@@ -183,6 +183,8 @@ class AdministrativeUnitNode(BaseModel):
     unit_type: str
     assignments: List[AssignmentUserSummary] = []
     children: List["AdministrativeUnitNode"] = []
+    total_committees: int = 0
+    total_members: int = 0
 
     class Config:
         from_attributes = True

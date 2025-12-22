@@ -28,6 +28,7 @@ export default function ChartsPanel({ stats }) {
     <div className="charts-grid">
       <div className="chart-card">
         <h3>Comités por responsable</h3>
+        <p>Los comités por responsable son los comités que han sido capturados por cada coordinador</p>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={byUser} margin={{ top: 12, right: 12, left: -16, bottom: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0d6dd" />
@@ -47,7 +48,7 @@ export default function ChartsPanel({ stats }) {
         <h3>Distribución por tipo de comité</h3>
         <ResponsiveContainer width="100%" height={260}>
           <PieChart>
-            <Pie dataKey="total" data={byType} innerRadius={60} outerRadius={95} paddingAngle={4}>
+            <Pie dataKey="total" nameKey="type" data={byType} innerRadius={60} outerRadius={95} paddingAngle={4}>
               {byType.map((entry, index) => (
                 <Cell key={`type-${entry.type}-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
@@ -59,7 +60,7 @@ export default function ChartsPanel({ stats }) {
       </div>
 
       <div className="chart-card">
-        <h3>Impulso territorial por municipio</h3>
+        <h3>Comités por municipio</h3>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={byMunicipality} margin={{ top: 12, right: 16, left: -10, bottom: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0d6dd" />
