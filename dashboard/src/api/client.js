@@ -52,3 +52,8 @@ export const downloadCommitteesExcel = () =>
 
 export const downloadCommitteeActa = (committeeId) =>
   api.get(`dashboard/committees/${committeeId}/acta.pdf`, { responseType: 'blob' })
+
+export const fetchCommitteeDocuments = (committeeId) =>
+  api.get(`committees/${committeeId}/documents`).then(unwrap)
+
+export const getUploadUrl = (filename) => `${baseURL}/api/uploads/${filename}`

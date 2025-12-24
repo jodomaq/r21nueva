@@ -110,7 +110,9 @@ function DashboardContent() {
     <div className="dashboard-app">
       <header className="dashboard-header">
         <div className="dashboard-header__identity">
-          <img src={logo} alt="R21" />
+          <a href="https://plataformar21.mx/" target="_blank" rel="noopener noreferrer">
+            <img src={logo} alt="R21" />
+          </a>
           <div>
             <h1>Dashboard estratégico R21 MORENA en Michoacán</h1>
             <p>
