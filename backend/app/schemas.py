@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
 from decimal import Decimal
 
@@ -30,11 +30,27 @@ class UserOut(BaseModel):
 
 class CommitteeMemberBase(BaseModel):
     full_name: str
-    ine_key: str
+    ine_key: Optional[str] = None
     phone: str
-    email: EmailStr
+    email: Optional[str] = None
     section_number: str
     invited_by: str
+    
+    @field_validator('ine_key', mode='before')
+    @classmethod
+    def validate_ine_key(cls, v):
+        """Convertir cadena vacía a None"""
+        if v == "" or (isinstance(v, str) and v.strip() == ""):
+            return None
+        return v
+    
+    @field_validator('email', mode='before')
+    @classmethod
+    def validate_email(cls, v):
+        """Convertir cadena vacía a None"""
+        if v == "" or (isinstance(v, str) and v.strip() == ""):
+            return None
+        return v
 
 
 class CommitteeMemberCreate(CommitteeMemberBase):

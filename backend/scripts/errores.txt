@@ -1,0 +1,10 @@
+Jan 07 21:40:35 my-vps uvicorn[3184012]: INFO:     Waiting for application startup.
+Jan 07 21:40:35 my-vps uvicorn[3184012]: INFO:     Application startup complete.
+Jan 07 21:40:35 my-vps uvicorn[3184012]: INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+Jan 07 21:41:30 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "POST /committees/20/members HTTP/1.1" 422 Unpro>
+Jan 07 21:41:33 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "GET /auth/me HTTP/1.1" 200 OK
+Jan 07 21:41:33 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "GET /auth/me/assignment HTTP/1.1" 200 OK
+Jan 07 21:41:33 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "GET /committees HTTP/1.1" 200 OK
+Jan 07 21:41:35 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "GET /committees/20 HTTP/1.1" 200 OK
+Jan 07 21:41:36 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "GET /committees/20 HTTP/1.1" 200 OK
+Jan 07 21:41:46 my-vps uvicorn[3184012]: INFO:     187.190.202.141:0 - "POST /committees/20/members HTTP/1.1" 422 Unprocessable Content

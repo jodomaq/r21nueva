@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, TextField, Button, Grid, Paper, Typography, Stack, Tooltip, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -15,6 +15,7 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
     section_number: '',
     invited_by: ''
   });
+  const [committeeData, setCommitteeData] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
@@ -24,17 +25,11 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
     () =>
       yup.object({
         full_name: yup.string().trim().required('Nombre completo es obligatorio'),
-        ine_key: yup
-          .string()
-          .trim()
-          .matches(/^[A-Za-z]{6}\d{8}[A-Za-z]\d{3}$/, 'La clave INE debe contener 6 letras, 8 números, una letra y 3 números')
-          .required('La clave de elector es obligatoria'),
         phone: yup
           .string()
           .trim()
           .matches(/^\d{10}$/, 'Teléfono debe tener 10 dígitos')
           .required('Teléfono es obligatorio'),
-        email: yup.string().trim().email('Email no es válido').required('Email es obligatorio'),
         section_number: yup.string().trim().required('Sección es obligatoria'),
         invited_by: yup.string().trim().required('Invitado por es obligatorio')
       }),
@@ -44,6 +39,32 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
     setForm(prev => ({ ...prev, [k]: v }));
     setErrors(prev => ({ ...prev, [k]: undefined }));
   };
+
+  // Cargar datos del comité al montar el componente
+  useEffect(() => {
+    const loadCommitteeData = async () => {
+      try {
+        const response = await api.get(`/committees/${committeeId}`);
+        const committee = response.data;
+        setCommitteeData(committee);
+
+        // Rellenar automáticamente los campos con los datos del comité
+        if (committee.section_number) {
+          setForm(prev => ({ ...prev, section_number: String(committee.section_number) }));
+        }
+        if (committee.presidente) {
+          setForm(prev => ({ ...prev, invited_by: committee.presidente }));
+        }
+      } catch (error) {
+        console.error('Error cargando datos del comité:', error);
+      }
+    };
+
+    if (committeeId) {
+      loadCommitteeData();
+    }
+  }, [committeeId]);
+
   const sections = useMemo(() => Array.from({ length: 2734 }, (_, i) => String(i + 1)), []);
   const handleScanClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
@@ -86,8 +107,8 @@ export default function AddMember({ committeeId, onAdded, onCancel }) {
   };
 
   return (
-    <Paper sx={{ p:2 }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb:2 }}>
+    <Paper sx={{ p: 2 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={onCancel}>
           Cancelar
         </Button>

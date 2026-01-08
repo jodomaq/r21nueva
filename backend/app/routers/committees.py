@@ -112,34 +112,44 @@ def add_member(
     session: Session = Depends(get_session),
     user: models.User = Depends(get_current_user),
 ):
-    committee = session.get(models.Committee, committee_id)
-    if not committee or (committee.owner_id != user.email and committee.email != user.email):
-        raise HTTPException(status_code=404, detail="Comité no encontrado")
-    # Only role 6 (presidente del comité) can add members, and only to their own committee (already enforced)
-    ua = session.exec(
-        select(models.UserAssignment)
-        .where(models.UserAssignment.user_id == user.id)
-        .order_by(models.UserAssignment.created_at.desc())
-    ).first()
-    if not (ua):
-        raise HTTPException(status_code=403, detail="Tu rol no permite agregar integrantes")
-    session.refresh(committee)
-    current_count = len(committee.members)
-    if current_count >= settings.max_members_per_committee:
-        raise HTTPException(status_code=400, detail="Ya tiene el máximo de integrantes")
-    new_member = models.CommitteeMember(
-        full_name=member.full_name,
-        ine_key=member.ine_key,
-        phone=member.phone,
-        email=member.email,
-        section_number=member.section_number,
-        invited_by=member.invited_by,
-        committee_id=committee.id,
-    )
-    session.add(new_member)
-    session.commit()
-    session.refresh(committee)
-    return committee
+    try:
+        committee = session.get(models.Committee, committee_id)
+        if not committee or (committee.owner_id != user.email and committee.email != user.email):
+            raise HTTPException(status_code=404, detail="Comité no encontrado")
+        # Only role 6 (presidente del comité) can add members, and only to their own committee (already enforced)
+        ua = session.exec(
+            select(models.UserAssignment)
+            .where(models.UserAssignment.user_id == user.id)
+            .order_by(models.UserAssignment.created_at.desc())
+        ).first()
+        if not (ua):
+            raise HTTPException(status_code=403, detail="Tu rol no permite agregar integrantes")
+        session.refresh(committee)
+        current_count = len(committee.members)
+        if current_count >= settings.max_members_per_committee:
+            raise HTTPException(status_code=400, detail="Ya tiene el máximo de integrantes")
+        new_member = models.CommitteeMember(
+            full_name=member.full_name,
+            ine_key=member.ine_key,
+            phone=member.phone,
+            email=member.email,
+            section_number=member.section_number,
+            invited_by=member.invited_by,
+            committee_id=committee.id,
+        )
+        session.add(new_member)
+        session.commit()
+        session.refresh(committee)
+        return committee
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        # Log and return detailed error for debugging
+        import traceback
+        error_detail = f"Error al agregar miembro: {str(e)}\nTipo: {type(e).__name__}\nTraceback: {traceback.format_exc()}"
+        print(error_detail)  # Para logs del servidor
+        raise HTTPException(status_code=500, detail=f"Error al agregar miembro: {str(e)}")
 
 
 @router.delete("/{committee_id}/members/{member_id}", response_model=schemas.CommitteeOut)

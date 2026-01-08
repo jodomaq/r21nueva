@@ -43,6 +43,21 @@ const msalConfig = {
 
 const msalInstance = microsoftClientId ? new PublicClientApplication(msalConfig) : null;
 
+// Lista de emails de administradores
+const ADMIN_EMAILS = [
+  'jodomaq@gmail.com',
+  'karinarojas2597@gmail.com',
+  'Karinarojas2597@gmail.com',
+  'raul_moron_orozco@hotmail.com',
+  'cosarireyes@gmail.com'
+];
+
+// Función helper para verificar si un email es de administrador
+const isAdminEmail = (email) => {
+  if (!email) return false;
+  return ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === email.toLowerCase());
+};
+
 function InternalAuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [assignment, setAssignment] = useState({ role: null, committees_owned: [] });
@@ -56,8 +71,8 @@ function InternalAuthProvider({ children }) {
       const { data } = await api.post('/auth/google', { id_token });
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
-      setIsAdmin(data.user.email === 'jodomaq@gmail.com');
-      console.log('User after login', data.user);
+      setIsAdmin(isAdminEmail(data.user.email));
+      //console.log('User after login', data.user);
       // Fetch assignment after login
       try {
         const a = await api.get('/auth/me/assignment');
@@ -80,27 +95,24 @@ function InternalAuthProvider({ children }) {
       alert('Microsoft authentication no está configurado');
       return;
     }
-    
+
     try {
       setLoading(true);
       const loginRequest = {
         scopes: ['User.Read'],
       };
-      
+
       const response = await msalInstance.loginPopup(loginRequest);
       const accessToken = response.accessToken;
-      
+
       // Enviar el token al backend
       const { data } = await api.post('/auth/microsoft', { access_token: accessToken });
       localStorage.setItem('token', data.access_token);
       setUser(data.user);
-      setIsAdmin(data.user.email === 'jodomaq@gmail.com');
-      setIsAdmin(data.user.email === 'Karinarojas2597@gmail.com')
-      setIsAdmin(data.user.email === 'raul_moron_orozco@hotmail.com');
-      setIsAdmin(data.user.email === 'Karinarojas2597@gmail.com')
+      setIsAdmin(isAdminEmail(data.user.email));
 
       console.log('User after Microsoft login', data.user);
-      
+
       // Fetch assignment after login
       try {
         const a = await api.get('/auth/me/assignment');
@@ -134,7 +146,7 @@ function InternalAuthProvider({ children }) {
       try {
         const me = await api.get('/auth/me');
         setUser(me.data);
-        setIsAdmin(me.data.email === 'jodomaq@gmail.com');
+        setIsAdmin(isAdminEmail(me.data.email));
         // There is no backend endpoint for /auth/me user profile yet; we can infer user by calling /committees (which requires auth) or skip.
         // Minimal: fetch assignment to decide UI
         const a = await api.get('/auth/me/assignment');
@@ -180,12 +192,12 @@ export function RequireAuth({ children }) {
 export function LoginScreen() {
   const { handleGoogleSuccess, handleMicrosoftLogin, loading } = useAuth();
   return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:24, backgroundColor:'#8b1e3f'}}>
-      <h2 style={{color:'white'}}>Comités territoriales</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 24, backgroundColor: '#8b1e3f' }}>
+      <h2 style={{ color: 'white' }}>Comités territoriales</h2>
       <a href="https://plataformar21.mx"><img src={logo} alt="Logo R21" style={{ height: 80 }} /></a>
-      <div style={{backgroundColor:'rgba(255, 255, 255)', padding: 16, borderRadius: 8}} >
+      <div style={{ backgroundColor: 'rgba(255, 255, 255)', padding: 16, borderRadius: 8 }} >
         <p>Inicia sesión con tu cuenta</p>
-        
+
         <div style={{ marginBottom: 16 }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -196,7 +208,7 @@ export function LoginScreen() {
             theme="outline"
           />
         </div>
-        
+
         {msalInstance && (
           <button
             onClick={handleMicrosoftLogin}
@@ -218,15 +230,15 @@ export function LoginScreen() {
             }}
           >
             <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+              <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+              <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
             </svg>
             Iniciar sesión con Microsoft
           </button>
         )}
-        
+
         {loading && <span style={{ display: 'block', marginTop: 12, textAlign: 'center' }}>Verificando...</span>}
       </div>
     </div>

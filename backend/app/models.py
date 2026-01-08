@@ -100,9 +100,9 @@ class Committee(SQLModel, table=True):
 class CommitteeMember(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     full_name: str
-    ine_key: str = Field(index=True)
+    ine_key: Optional[str] = Field(default=None, index=True)
     phone: str
-    email: str
+    email: Optional[str] = Field(default=None)
     section_number: str
     invited_by: str
     committee_id: int = Field(foreign_key="committee.id", index=True)
