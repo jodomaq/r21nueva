@@ -13,12 +13,30 @@ from datetime import datetime
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-ADMIN_EMAIL = "jodomaq@gmail.com"
+# Lista de emails de administradores permitidos
+ADMIN_EMAILS = [
+    "jodomaq@gmail.com",
+    "karinarojas2597@gmail.com",
+    "raul_moron_orozco@hotmail.com",
+    "cosarireyes@gmail.com"
+]
 
 
 def verify_admin(current_user: User = Depends(get_current_user)):
-    """Verifica que el usuario actual sea el administrador"""
-    if current_user.email != ADMIN_EMAIL:
+    """Verifica que el usuario actual sea administrador"""
+    if not current_user.email:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo el administrador puede acceder a este recurso"
+        )
+    
+    # Verificación case-insensitive
+    is_admin = any(
+        admin_email.lower() == current_user.email.lower() 
+        for admin_email in ADMIN_EMAILS
+    )
+    
+    if not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Solo el administrador puede acceder a este recurso"
@@ -148,11 +166,15 @@ def delete_user(
             detail="Usuario no encontrado"
         )
     
-    # No permitir eliminar al admin
-    if user.email == ADMIN_EMAIL:
+    # No permitir eliminar a ningún administrador
+    is_admin = any(
+        admin_email.lower() == user.email.lower() 
+        for admin_email in ADMIN_EMAILS
+    )
+    if is_admin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se puede eliminar al usuario administrador"
+            detail="No se puede eliminar a un usuario administrador"
         )
     
     # Eliminar asignaciones

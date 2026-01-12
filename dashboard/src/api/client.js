@@ -44,6 +44,7 @@ export const fetchDocuments = () => api.get('dashboard/documents').then(unwrap)
 export const fetchMetrics = () => api.get('dashboard/metrics').then(unwrap)
 export const fetchAttendanceMap = () => api.get('dashboard/attendance/map').then(unwrap)
 export const googleLoginRequest = (idToken) => api.post('auth/google', { id_token: idToken }).then(unwrap)
+export const usernamePasswordLoginRequest = (username, password) => api.post('auth/login', { username, password }).then(unwrap)
 export const fetchCurrentUser = () => api.get('auth/me').then(unwrap)
 export const fetchMyAssignment = () => api.get('auth/me/assignment').then(unwrap)
 

@@ -130,6 +130,35 @@ function InternalAuthProvider({ children }) {
     }
   };
 
+  const handleUsernamePasswordLogin = async (username, password) => {
+    try {
+      setLoading(true);
+      const { data } = await api.post('/auth/login', { username, password });
+      localStorage.setItem('token', data.access_token);
+      setUser(data.user);
+      setIsAdmin(isAdminEmail(data.user.email));
+
+      console.log('User after username/password login', data.user);
+
+      // Fetch assignment after login
+      try {
+        const a = await api.get('/auth/me/assignment');
+        console.log('Assignment after login', a.data);
+        setAssignment(a.data || { role: null, committees_owned: [] });
+      } catch (err) {
+        console.warn('No se pudo obtener el rol', err);
+        setAssignment({ role: null, committees_owned: [] });
+      }
+      return { success: true };
+    } catch (e) {
+      console.error(e);
+      const errorMsg = e.response?.data?.detail || 'Error de autenticación';
+      return { success: false, error: errorMsg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     googleLogout();
@@ -160,7 +189,7 @@ function InternalAuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, assignment, setAssignment, handleGoogleSuccess, handleMicrosoftLogin, logout, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, setUser, assignment, setAssignment, handleGoogleSuccess, handleMicrosoftLogin, handleUsernamePasswordLogin, logout, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -190,14 +219,115 @@ export function RequireAuth({ children }) {
 }
 
 export function LoginScreen() {
-  const { handleGoogleSuccess, handleMicrosoftLogin, loading } = useAuth();
+  const { handleGoogleSuccess, handleMicrosoftLogin, handleUsernamePasswordLogin, loading } = useAuth();
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!username || !password) {
+      setError('Por favor ingresa usuario y contraseña');
+      return;
+    }
+
+    const result = await handleUsernamePasswordLogin(username, password);
+    if (!result.success) {
+      setError(result.error);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 24, backgroundColor: '#8b1e3f' }}>
       <h2 style={{ color: 'white' }}>Comités territoriales</h2>
       <a href="https://plataformar21.mx"><img src={logo} alt="Logo R21" style={{ height: 80 }} /></a>
-      <div style={{ backgroundColor: 'rgba(255, 255, 255)', padding: 16, borderRadius: 8 }} >
-        <p>Inicia sesión con tu cuenta</p>
+      <div style={{ backgroundColor: 'rgba(255, 255, 255)', padding: 24, borderRadius: 8, minWidth: 320 }} >
+        <p style={{ marginBottom: 16, textAlign: 'center' }}>Inicia sesión con tu cuenta</p>
 
+        {/* Sección de login con usuario y contraseña */}
+        <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 12 }}>
+            <input
+              type="text"
+              placeholder="Usuario"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          {error && (
+            <div style={{
+              color: '#d32f2f',
+              fontSize: '12px',
+              marginBottom: 12,
+              padding: '8px',
+              backgroundColor: '#ffebee',
+              borderRadius: '4px',
+              textAlign: 'center'
+            }}>
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: '#8b1e3f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+          </button>
+        </form>
+
+        {/* Separador */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '16px 0',
+          gap: '8px'
+        }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#ccc' }}></div>
+          <span style={{ color: '#666', fontSize: '12px' }}>O</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#ccc' }}></div>
+        </div>
+
+        {/* Botones de redes sociales */}
         <div style={{ marginBottom: 16 }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -238,8 +368,6 @@ export function LoginScreen() {
             Iniciar sesión con Microsoft
           </button>
         )}
-
-        {loading && <span style={{ display: 'block', marginTop: 12, textAlign: 'center' }}>Verificando...</span>}
       </div>
     </div>
   );

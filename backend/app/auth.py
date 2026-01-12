@@ -14,9 +14,22 @@ from . import models, schemas
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# Lista de usuarios estáticos para autenticación con usuario y contraseña
+# Formato: username -> (password, email, name)
+STATIC_USERS = {
+    "admin": ("uk96/*BRR", "jodomaq@gmail.com", "admin"),
+    "cosari": ("huatabampo", "cosarireyes@gmail.com", "cosari"),
+    # Agrega más usuarios aquí manualmente
+}
+
 
 class GoogleAuthIn(BaseModel):
     id_token: str
+    
+
+class UsernamePasswordAuthIn(BaseModel):
+    username: str
+    password: str
 
 
 class MicrosoftAuthIn(BaseModel):
@@ -80,6 +93,59 @@ def google_login(data: GoogleAuthIn, session: Session = Depends(get_session)):
     else:
         session.refresh(user_assignment)
 
+    token = create_jwt(user)
+    return schemas.TokenResponse(access_token=token, user=user)  # type: ignore[arg-type]
+
+
+@router.post("/login", response_model=schemas.TokenResponse)
+def username_password_login(data: UsernamePasswordAuthIn, session: Session = Depends(get_session)):
+    """
+    Endpoint para autenticación tradicional con usuario y contraseña.
+    Los usuarios se validan contra la lista STATIC_USERS hardcodeada.
+    """
+    # Validar credenciales contra la lista estática
+    if data.username not in STATIC_USERS:
+        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
+    
+    stored_password, email, name = STATIC_USERS[data.username]
+    
+    if data.password != stored_password:
+        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
+    
+    # Verificar si el usuario existe en Committee o en User
+    registrado_committee = session.exec(select(models.Committee).where(models.Committee.email == email)).first()
+    registrado_user = session.exec(select(models.User).where(models.User.email == email)).first()
+    
+    if not registrado_committee and not registrado_user:
+        raise HTTPException(status_code=403, detail="Usuario no registrado. Contacta a tu coordinador.")
+    
+    # Crear o actualizar usuario en la tabla User
+    user = session.exec(select(models.User).where(models.User.email == email)).first()
+    if not user:
+        user = models.User(email=email, name=name, picture_url=None)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    
+    # Crear o verificar asignación de usuario
+    user_assignment = session.exec(
+        select(models.UserAssignment).where(
+            models.UserAssignment.user_id == user.id,
+        )
+    ).first()
+    
+    if not user_assignment:
+        user_assignment = models.UserAssignment(
+            user_id=user.id,
+            administrative_unit_id=1,
+            role=6,  # 6=PRESIDENTE_COMITE
+        )
+        session.add(user_assignment)
+        session.commit()
+        session.refresh(user_assignment)
+    else:
+        session.refresh(user_assignment)
+    
     token = create_jwt(user)
     return schemas.TokenResponse(access_token=token, user=user)  # type: ignore[arg-type]
 

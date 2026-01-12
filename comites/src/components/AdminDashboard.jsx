@@ -56,7 +56,21 @@ const UNIT_TYPE_NAMES = {
   'DISTRICT': 'Distrito',
   'MUNICIPALITY': 'Municipio',
   'SECTION': 'Sección',
-  'Region':'Administrador',
+  'Region': 'Administrador',
+};
+
+// Lista de emails de administradores (no se pueden eliminar)
+const ADMIN_EMAILS = [
+  'jodomaq@gmail.com',
+  'karinarojas2597@gmail.com',
+  'raul_moron_orozco@hotmail.com',
+  'cosarireyes@gmail.com'
+];
+
+// Función helper para verificar si un email es de administrador
+const isAdminEmail = (email) => {
+  if (!email) return false;
+  return ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === email.toLowerCase());
 };
 
 export default function AdminDashboard() {
@@ -170,7 +184,7 @@ export default function AdminDashboard() {
 
   const filteredUnits = units.filter(unit => {
     const matchesType = !unitTypeFilter || unit.unit_type === unitTypeFilter;
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.code?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
@@ -324,7 +338,7 @@ export default function AdminDashboard() {
                         color="error"
                         size="small"
                         onClick={() => handleDeleteUser(user.id)}
-                        disabled={user.email === 'jodomaq@gmail.com'}
+                        disabled={isAdminEmail(user.email)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -401,9 +415,9 @@ export default function AdminDashboard() {
                         size="small"
                         color={
                           unit.unit_type === 'STATE' ? 'primary' :
-                          unit.unit_type === 'DISTRICT' ? 'success' :
-                          unit.unit_type === 'MUNICIPALITY' ? 'warning' :
-                          'default'
+                            unit.unit_type === 'DISTRICT' ? 'success' :
+                              unit.unit_type === 'MUNICIPALITY' ? 'warning' :
+                                'default'
                         }
                       />
                     </TableCell>
