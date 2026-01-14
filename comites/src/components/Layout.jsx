@@ -4,6 +4,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from '../AuthContext';
 import logo from '../assets/logoR21blanco.png';
+import InfoBar from './InfoBar';
 
 export default function Layout({ children, onNavigate }) {
   const [open, setOpen] = useState(false);
@@ -61,6 +62,7 @@ export default function Layout({ children, onNavigate }) {
         </Box>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 8, width: '100%' }}>
+        <InfoBar committeesCount={user?.committeesCount || 0} promotedCount={user?.promotedCount || 0} />
         {children}
       </Box>
     </Box>
