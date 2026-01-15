@@ -472,6 +472,137 @@ def administrative_tree(
     return final_nodes
 
 
+@router.get("/municipal-stats", response_model=List[schemas.AdministrativeUnitNode])
+def municipal_stats(
+    session: Session = Depends(get_session)
+) -> List[schemas.AdministrativeUnitNode]:
+    # 1. Fetch Assignments and Map to Municipality Name (normalization try)
+    # We try to link existing AdministrativeUnits (where assignments live) to the names coming from Seccion
+    assignments = session.exec(
+        select(models.UserAssignment)
+        .options(
+            selectinload(models.UserAssignment.user),
+            selectinload(models.UserAssignment.administrative_unit)
+        )
+    ).all()
+    
+    # Map normalized_name -> list of assignments
+    assignments_map: Dict[str, List[schemas.AssignmentUserSummary]] = defaultdict(list)
+    
+    for assignment in assignments:
+        unit = assignment.administrative_unit
+        if unit and unit.unit_type == "MUNICIPALITY":
+            # helper to summarize
+            if assignment.user:
+                summ = schemas.AssignmentUserSummary(
+                    user_id=assignment.user.id,
+                    user_name=assignment.user.name,
+                    user_email=assignment.user.email,
+                    role=assignment.role,
+                    role_label=_role_label(assignment.role),
+                )
+                assignments_map[unit.name.strip().upper()].append(summ)
+
+    # 2. Execute SQL-like query to get Stats grouped by Section, but with Municipality Info
+    # Based on user request: SELECT ... FROM committee INNER JOIN seccion ...
+    stats_query = (
+        select(
+            models.Seccion.municipio.label("municipio_id"),
+            models.Seccion.nombre_municipio,
+            models.Seccion.id.label("section_id"),
+            func.count(distinct(models.Committee.id)).label("committee_count"),
+            func.count(models.CommitteeMember.id).label("member_count")
+        )
+        .select_from(models.Committee)
+        .join(models.Seccion, cast(models.Seccion.id, String) == models.Committee.section_number)
+        .outerjoin(models.CommitteeMember, models.CommitteeMember.committee_id == models.Committee.id)
+        .group_by(models.Seccion.id, models.Seccion.municipio, models.Seccion.nombre_municipio)
+        .order_by(models.Seccion.nombre_municipio)
+    )
+    
+    try:
+        rows = session.exec(stats_query).all()
+    except SQLAlchemyError as e:
+        print(f"Error executing municipal stats query: {e}")
+        return []
+
+    # 3. Process results into Hierarchy
+    # Structure: MunicipalityID -> { name, sections: [ {id, committees, members} ] }
+    municipalities: Dict[int, Dict] = {}
+    
+    for row in rows:
+        mun_id = row.municipio_id
+        # Safety check if municipio_id is None
+        if not mun_id: 
+            cont = "Unknown"
+            mun_id = -1 # Fallback ID
+        
+        if mun_id not in municipalities:
+            municipalities[mun_id] = {
+                "name": row.nombre_municipio or "Desconocido",
+                "sections": [],
+                "total_committees": 0,
+                "total_members": 0
+            }
+        
+        municipalities[mun_id]["sections"].append({
+            "id": row.section_id,
+            "committees": row.committee_count,
+            "members": row.member_count
+        })
+        municipalities[mun_id]["total_committees"] += row.committee_count
+        municipalities[mun_id]["total_members"] += row.member_count
+
+    # 4. Build Node List
+    final_nodes = []
+    
+    # Sort municipalities by name
+    sorted_mun_ids = sorted(municipalities.keys(), key=lambda k: municipalities[k]["name"])
+
+    for mun_id in sorted_mun_ids:
+        data = municipalities[mun_id]
+        
+        # Look for assignments
+        # Try to match name
+        name_key = data["name"].strip().upper()
+        mun_assignments = assignments_map.get(name_key, [])
+
+        # Build Section Children
+        children = []
+        for sec in data["sections"]:
+            # Only add section if it has activity? User said "Solo que se muestren los municipios que contengan comités"
+            # User sql groups by section, so if section is in result, it has committees (inner join committee)
+            # Actually user SQL is INNER JOIN, so yes, only active sections appear.
+            
+            children.append(
+                schemas.AdministrativeUnitNode(
+                    id=sec["id"],
+                    name=f"Sección {sec['id']}",
+                    code=str(sec["id"]),
+                    unit_type="SECTION",
+                    total_committees=sec["committees"],
+                    total_members=sec["members"]
+                )
+            )
+        
+        # Sort sections by ID
+        children.sort(key=lambda x: x.id)
+
+        node = schemas.AdministrativeUnitNode(
+            id=mun_id, # Using Seccion.municipio as ID
+            name=data["name"],
+            unit_type="MUNICIPALITY",
+            assignments=mun_assignments,
+            children=children,
+            total_committees=data["total_committees"],
+            total_members=data["total_members"]
+        )
+        
+        final_nodes.append(node)
+
+    return final_nodes
+
+
 @router.get("/user-assignments", response_model=List[schemas.UserAssignmentRow])
 def list_user_assignments(session: Session = Depends(get_session)) -> List[schemas.UserAssignmentRow]:
     assignments = session.exec(

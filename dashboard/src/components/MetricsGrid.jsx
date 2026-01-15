@@ -19,7 +19,7 @@ export default function MetricsGrid({ metrics }) {
       <div className="metric-card">
         <span>Comités capturados</span>
         <strong>{formatNumber(metrics.total_committees)}</strong>
-        <span>Promovidos registrados: {formatNumber(metrics.total_promovidos)}</span>
+        <span>Integrantes de comités registrados: {formatNumber(metrics.total_promovidos)}</span>
       </div>
       <div className="metric-card">
         <span>Municipios con presencia</span>

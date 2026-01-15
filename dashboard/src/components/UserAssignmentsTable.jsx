@@ -10,7 +10,7 @@ const UNIT_TRANSLATIONS = {
 
 
 const UnitRow = ({ node, level = 0 }) => {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const hasChildren = node.children && node.children.length > 0
 
   // Determine display name and role
@@ -95,7 +95,7 @@ export default function UserAssignmentsTable({ nodes }) {
             <th style={{ width: '40%' }}>Nombre / Unidad</th>
             <th style={{ width: '30%' }}>Rol</th>
             <th style={{ width: '15%', textAlign: 'center' }}>Comités</th>
-            <th style={{ width: '15%', textAlign: 'center' }}>Promovidos</th>
+            <th style={{ width: '15%', textAlign: 'center' }}>Integrantes de comités</th>
           </tr>
         </thead>
         <tbody>

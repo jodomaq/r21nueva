@@ -9,6 +9,8 @@ import ChartsPanel from './components/ChartsPanel'
 import AttendanceTable from './components/AttendanceTable'
 import AdministrativeTreeView from './components/AdministrativeTreeView'
 import UserAssignmentsTable from './components/UserAssignmentsTable'
+import TerritorialStructureStats from './components/TerritorialStructureStats'
+import MunicipalStructureStats from './components/MunicipalStructureStats'
 import CommitteeExplorer from './components/CommitteeExplorer'
 import DocumentsGallery from './components/DocumentsGallery'
 import PresidentsList from './components/PresidentsList'
@@ -157,6 +159,18 @@ function DashboardContent() {
           <UserAssignmentsTable nodes={administrativeTree} />
         </div>
       </section>
+
+      <section className="card-section">
+        <h2>Detalle de estructura y metas</h2>
+        <TerritorialStructureStats nodes={administrativeTree} />
+      </section>
+
+      <section className="card-section">
+        <h2>Detalle Municipal</h2>
+        <MunicipalStructureStats nodes={administrativeTree} />
+      </section>
+
+
 
       <section className="card-section">
         <h2>Comités con detalle y actas</h2>
