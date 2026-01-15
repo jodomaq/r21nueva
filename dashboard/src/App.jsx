@@ -149,17 +149,6 @@ function DashboardContent() {
 
       <section className="sections-grid">
         <div className="card-section">
-          <h2>Asistencia validada en eventos</h2>
-          <AttendanceTable records={attendance} />
-        </div>
-        <div className="card-section">
-          <h2>Mapa de reuniones en Michoacán</h2>
-          <MapView points={mapPoints} />
-        </div>
-      </section>
-
-      <section className="sections-grid">
-        <div className="card-section">
           <h2>Estructura territorial R21</h2>
           <AdministrativeTreeView nodes={fullAdministrativeTree} />
         </div>
@@ -182,6 +171,17 @@ function DashboardContent() {
         <div className="card-section">
           <h2>Presidentes y enlaces directos</h2>
           <PresidentsList presidents={presidents} />
+        </div>
+      </section>
+
+      <section className="sections-grid">
+        <div className="card-section">
+          <h2>Asistencia validada en eventos</h2>
+          <AttendanceTable records={attendance} />
+        </div>
+        <div className="card-section">
+          <h2>Mapa de reuniones en Michoacán</h2>
+          <MapView points={mapPoints} />
         </div>
       </section>
     </div>
